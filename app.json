@@ -1,0 +1,50 @@
+{
+    "id": "com.slicinghaunt.bosesoundtouch",
+    "sdk": 2,
+    "name": {
+        "en": "Bose Soundtouch"
+    },
+    "description": {
+        "en": "Adds support for Bose Soundtouch devices."
+    },
+    "category": "music",
+    "version": "1.0.0",
+    "compatibility": ">=1.5.0",
+    "author": {
+        "name": "Stefan Simon",
+        "email": "stefan@stefansimon.nl"
+    },
+    "drivers": [
+        {
+            "id": "soundtouch",
+            "name": {
+                "en": "Bose Soundtouch"
+            },
+            "images": {
+                "large": "/drivers/sonos/assets/images/large.png",
+                "small": "/drivers/sonos/assets/images/small.png"
+            },
+            "class": "speaker",
+            "capabilities": [
+                "speaker_playing",
+                "speaker_prev",
+                "speaker_next",
+                "volume_set",
+                "volume_mute"
+            ],
+            "pair": [
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_devices"
+                    }
+                },
+                {
+                    "id": "add_devices",
+                    "template": "add_devices"
+                }
+            ]
+        }
+    ]
+}
