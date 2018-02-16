@@ -1,0 +1,49 @@
+<script>
+    Homey.setTitle( __('pair.start.title') );
+    function testSettings () {
+        // variables
+        let ip = document.getElementById('ipaddress').value;
+        Homey.log('dit moet werken toch?');
+        if (ip !== '') {
+            let settings = {
+                ip: ip
+            };
+
+            Homey.emit( 'save', settings, (err, result) => {
+                Homey.log('tot hier gaat het behoorlijk goed');
+                if (err) {
+                    console.log(err);
+                    Homey.alert(err.message, 'error');
+                } else {
+                    const device = {
+                        ip: settings.ip,
+                        model: '30'
+                    };
+                    Homey.log('tot hier gaat het goed');
+                    Homey.addDevice(device, (err, result) => {
+                        if(err) {
+                            Homey.alert(err, 'error');
+                            return;
+                        }
+                        setTimeout(function () {
+                            Homey.done();
+                        }, 5000);
+                    });
+                }
+            });
+        } else {
+            Homey.alert(__('pair.start.required'), 'error');
+            // Homey.done();
+        }
+    }
+</script>
+
+<p data-i18n="pair.start.intro">enter IP address of the Bose Soundtouch Device</p>
+
+<table class="pairSettings">
+    <tr>
+        <td data-i18n="pair.start.ipaddress">IP:</td>
+        <td><input id="ipaddress" type="text" value="192.168.1.1" placeholder="e.g. 192.168.1.1"/></td>
+    </tr>
+</table>
+<button class="button" data-i18n="pair.start.testSettings" onclick="testSettings()">Save</button>
