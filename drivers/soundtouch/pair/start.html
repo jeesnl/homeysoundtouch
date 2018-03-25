@@ -1,36 +1,29 @@
 <script>
-    Homey.setTitle( __('pair.start.title') );
-    function testSettings () {
+    Homey.setTitle( __('pair.start.titlezzzzz') );
+    console.log('if this doesnnt show im quiting right now');
+    function testSettings() {
+        console.log('this should be working' );
         // variables
         let ip = document.getElementById('ipaddress').value;
-        Homey.log('dit moet werken toch?');
+        let type = document.getElementById('type').value;
         if (ip !== '') {
-            let settings = {
-                ip: ip
-            };
+            Homey.addDevice({
+                data: {
+                    ip: ip
+                },
+                name: type,
+                settings: {
 
-            Homey.emit( 'save', settings, (err, result) => {
-                Homey.log('tot hier gaat het behoorlijk goed');
-                if (err) {
-                    console.log(err);
-                    Homey.alert(err.message, 'error');
-                } else {
-                    const device = {
-                        ip: settings.ip,
-                        model: '30'
-                    };
-                    Homey.log('tot hier gaat het goed');
-                    Homey.addDevice(device, (err, result) => {
-                        if(err) {
-                            Homey.alert(err, 'error');
-                            return;
-                        }
-                        setTimeout(function () {
-                            Homey.done();
-                        }, 5000);
-                    });
+                },
+                store: {
+
                 }
+            }, (err, result) => {
+                if (err) return Homey.alert(err);
+                console.log(result);
+                Homey.done();
             });
+
         } else {
             Homey.alert(__('pair.start.required'), 'error');
             // Homey.done();
@@ -42,8 +35,18 @@
 
 <table class="pairSettings">
     <tr>
+        <td data-i18n="pair.start.type">Model:</td>
+        <td>
+            <select id="type" name="type">
+                <option value="Soundtouch 30">Soundtouch 30</option>
+                <option value="Soundtouch 20">Soundtouch 20</option>
+                <option value="Soundtouch 10">Soundtouch 10</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
         <td data-i18n="pair.start.ipaddress">IP:</td>
         <td><input id="ipaddress" type="text" value="192.168.1.1" placeholder="e.g. 192.168.1.1"/></td>
     </tr>
 </table>
-<button class="button" data-i18n="pair.start.testSettings" onclick="testSettings()">Save</button>
+<button class="button" id="saveconfiguration" data-i18n="pair.start.testSettings" onclick="testSettings()">Save</button>
