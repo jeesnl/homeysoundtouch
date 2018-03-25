@@ -1,8 +1,6 @@
 <script>
-    Homey.setTitle( __('pair.start.titlezzzzz') );
-    console.log('if this doesnnt show im quiting right now');
-    function testSettings() {
-        console.log('this should be working' );
+    Homey.setTitle( __('pair.start.title') );
+    function saveDevice() {
         // variables
         let ip = document.getElementById('ipaddress').value;
         let type = document.getElementById('type').value;
@@ -26,7 +24,6 @@
 
         } else {
             Homey.alert(__('pair.start.required'), 'error');
-            // Homey.done();
         }
     }
 </script>
@@ -49,4 +46,4 @@
         <td><input id="ipaddress" type="text" value="192.168.1.1" placeholder="e.g. 192.168.1.1"/></td>
     </tr>
 </table>
-<button class="button" id="saveconfiguration" data-i18n="pair.start.testSettings" onclick="testSettings()">Save</button>
+<button class="button" id="saveconfiguration" data-i18n="pair.start.saveDevice" onclick="saveDevice()">Save</button>

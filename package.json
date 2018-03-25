@@ -2,6 +2,7 @@
   "name": "com.slicinghaunt.bosesoundtouch",
   "version": "1.0.0",
   "dependencies": {
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.19",
+    "node-fetch": "^2.1.1"
   }
 }
