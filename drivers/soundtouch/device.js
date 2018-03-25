@@ -7,9 +7,6 @@ class SoundtouchDevice extends Homey.Device {
     // this method is called when the Device is inited
     onInit() {
         this.log('device init');
-        this.log('name:', this.getName());
-        this.log('class:', this.getClass());
-        this.log('data', this.getData());
 
         const playPresetAction = new Homey.FlowCardAction('play_preset');
         playPresetAction.register()
@@ -52,9 +49,9 @@ class SoundtouchDevice extends Homey.Device {
     // this method is called when the Device is added
     onAdded() {
         this.log('device added');
-        this.setSettings({
-            "ip": this.getData().ip
-        });
+        this.log('name:', this.getName());
+        this.log('class:', this.getClass());
+        this.log('settings', this.getSettings());
     }
 
     // this method is called when the Device is deleted
@@ -64,7 +61,6 @@ class SoundtouchDevice extends Homey.Device {
 
     onSettings(oldSettings, newSettings, changedKeys, callback) {
         this.log('settings changed', newSettings);
-        this.data = newSettings;
         callback(null);
     }
 

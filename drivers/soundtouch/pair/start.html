@@ -2,45 +2,36 @@
     Homey.setTitle( __('pair.start.title') );
     function saveDevice() {
         // variables
-        let ip = document.getElementById('ipaddress').value;
-        let type = document.getElementById('type').value;
+        const ip = $('#ipaddress').val();
+        let mac = '';
+        let name = '';
         if (ip !== '') {
-            Homey.addDevice({
-                data: {
-                    ip: ip
-                },
-                name: type,
-                settings: {
+            $.get('http://' + ip + ':8090/info', (data) => {
+                mac = $(data).find('info').attr('deviceID');
+                name = $(data).find('name').text();
+                Homey.addDevice({
+                    name: name,
+                    settings: {
+                        ip: ip,
+                        mac: mac
+                    },
+                    store: {
 
-                },
-                store: {
-
-                }
-            }, (err, result) => {
-                if (err) return Homey.alert(err);
-                console.log(result);
-                Homey.done();
+                    }
+                }, (err, result) => {
+                    if (err) return Homey.alert(err);
+                    Homey.done();
+                });
             });
-
         } else {
             Homey.alert(__('pair.start.required'), 'error');
         }
     }
 </script>
 
-<p data-i18n="pair.start.intro">enter IP address of the Bose Soundtouch Device</p>
+<p data-i18n="pair.start.intro">enter IP address of the Bose Soundtouch Device, the rest will be done automatically.</p>
 
 <table class="pairSettings">
-    <tr>
-        <td data-i18n="pair.start.type">Model:</td>
-        <td>
-            <select id="type" name="type">
-                <option value="Soundtouch 30">Soundtouch 30</option>
-                <option value="Soundtouch 20">Soundtouch 20</option>
-                <option value="Soundtouch 10">Soundtouch 10</option>
-            </select>
-        </td>
-    </tr>
     <tr>
         <td data-i18n="pair.start.ipaddress">IP:</td>
         <td><input id="ipaddress" type="text" value="192.168.1.1" placeholder="e.g. 192.168.1.1"/></td>
