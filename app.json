@@ -19,7 +19,7 @@
         {
           "id": "play_preset",
           "title": {
-            "en" : "Play a preset on Bose Soundtouch"
+            "en" : "Play a preset"
           },
           "fluidArgs": true,
           "args":[
@@ -81,8 +81,8 @@
                 "en": "Bose Soundtouch"
             },
             "images": {
-                "large": "/drivers/sonos/assets/images/large.png",
-                "small": "/drivers/sonos/assets/images/small.png"
+                "large": "/drivers/soundtouch/assets/images/large.png",
+                "small": "/drivers/soundtouch/assets/images/small.png"
             },
             "class": "speaker",
             "capabilities": [
