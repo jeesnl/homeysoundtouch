@@ -2,11 +2,13 @@
 
 const Homey = require('homey');
 const Fetch = require('node-fetch');
+const XmlParser = require('xml2js').Parser();
 
 class SoundtouchDevice extends Homey.Device {
     // this method is called when the Device is inited
     onInit() {
         this.log('device init');
+        this.log(this.getState());
 
         const playPresetAction = new Homey.FlowCardAction('play_preset');
         playPresetAction.register()
@@ -17,11 +19,24 @@ class SoundtouchDevice extends Homey.Device {
 
         const createZoneWithAction = new Homey.FlowCardAction('create_zone_with');
         createZoneWithAction.register()
-            .on('run', async (args, state, callback) => {
-                console.log(args);
-                console.log(state);
+            .on('run', (args, state, callback) => {
+                this.createZone(args.slave);
                 callback(null, true);
             });
+
+        const removeSlaveFromZoneAction = new Homey.FlowCardAction('remove_slave_from_zone');
+        removeSlaveFromZoneAction.register()
+            .on('run', (args, state, callback) => {
+                this.removeFromZone(args.slave);
+                callback(null, true);
+            });
+
+        let isPlayingTrigger = new Homey.FlowCardTrigger('is_playing');
+        isPlayingTrigger
+            .registerRunListener(( args, state ) => {
+                return Promise.resolve();
+            })
+            .register();
 
         this.registerMultipleCapabilityListener(['speaker_playing', 'speaker_prev', 'speaker_next', 'volume_set', 'volume_mute'], (value, opts) => {
             if (value.speaker_playing !== undefined) {
@@ -50,6 +65,11 @@ class SoundtouchDevice extends Homey.Device {
 
             return Promise.resolve();
         }, 500);
+
+        //poll playing state of speaker
+        setInterval(() => {
+            this.pollAndSetSpeakerPlaying();
+        }, 5000)
     }
 
 
@@ -60,6 +80,7 @@ class SoundtouchDevice extends Homey.Device {
         this.log('name:', this.getName());
         this.log('class:', this.getClass());
         this.log('settings', this.getSettings());
+        this.log('data', this.getData());
     }
 
     // this method is called when the Device is deleted
@@ -82,17 +103,44 @@ class SoundtouchDevice extends Homey.Device {
         this.postToSoundtouch('/volume', '<volume>' + volume * 100 + '</volume>');
     }
 
-    createZone() {
-        this.log('create zone');
+    createZone(slave) {
+        this.log('create zone with', slave.getName());
         this.postToSoundtouch('/setZone',
-            '<zone master="' + this.getSettings().mac + '">\n' +
-            '  <member ipaddress="$IPADDR">$MACADDR</member>\n' +
-            '  ...\n' +
+            '<zone master="' + this.getData().mac + '">' +
+            '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
+            '</zone>');
+    }
+
+    removeFromZone(slave) {
+        this.log('remove from zone', slave.getName());
+        this.postToSoundtouch('/removeZoneSlave',
+            '<zone master="' + this.getData().mac + '">' +
+            '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
             '</zone>');
     }
 
     postToSoundtouch(uri, body) {
         Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'POST', body: body});
+    }
+
+    pollAndSetSpeakerPlaying() {
+        const self = this;
+        Fetch('http://' + this.getSettings().ip + ':8090' + '/now_playing', {method: 'GET'})
+            .then(res => res.text())
+            .then(body => {
+                XmlParser.parseString(body, (err, result) => {
+                    if (result.nowPlaying.$.source !== 'STANDBY') {
+                        if (self.getCapabilityValue('speaker_playing') !== true) {
+                            self.isPlayingTrigger.trigger( tokens, state )
+                                .then( this.log )
+                                .catch( this.error )
+                        }
+                        self.setCapabilityValue('speaker_playing', true);
+                    } else {
+                        self.setCapabilityValue('speaker_playing', false);
+                    }
+                });
+            });
     }
 }
 

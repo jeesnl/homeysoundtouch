@@ -11,15 +11,20 @@
                 name = $(data).find('name').text();
                 Homey.addDevice({
                     name: name,
-                    settings: {
-                        ip: ip,
+                    data: {
                         mac: mac
+                    },
+                    settings: {
+                        ip: ip
                     },
                     store: {
 
                     }
                 }, (err, result) => {
-                    if (err) return Homey.alert(err);
+                    if (err) {
+                        console.log(name + '   ' + ip + '  '  + mac);
+                        return Homey.alert(err);
+                    }
                     Homey.done();
                 });
             });

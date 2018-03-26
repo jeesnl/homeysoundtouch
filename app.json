@@ -15,6 +15,52 @@
         "email": "stefan@stefansimon.nl"
     },
     "flow": {
+    "triggers": [
+        {
+          "id": "started_playing",
+          "title": {
+            "en": "Started playing something"
+          },
+          "tokens": [
+            {
+              "name": "track",
+              "type": "string",
+              "title": {
+                "en": "Title"
+              },
+              "example": "Queen - Who wants to live forever"
+            },
+            {
+              "name": "source",
+              "type": "string",
+              "title": {
+                "en": "Source"
+              },
+              "example": "Spotify"
+            }
+          ],
+          "args": [
+            {
+              "name": "device",
+              "type": "device",
+              "filter": "driver_id=soundtouch"
+            }
+          ]
+        },
+        {
+          "id": "stopped_playing",
+          "title": {
+            "en": "Stopped playing"
+          },
+          "args": [
+            {
+              "name": "device",
+              "type": "device",
+              "filter": "driver_id=soundtouch"
+            }
+          ]
+        }
+      ],
       "actions": [
         {
           "id": "play_preset",
@@ -85,10 +131,32 @@
               "filter": "driver_id=soundtouch"
             },
             {
-              "name": "device",
+              "name": "slave",
               "type": "device",
               "placeholder": {
                 "en": "Pick a soundtouch device to add to the zone"
+              },
+              "filter": "driver_id=soundtouch"
+            }
+          ]
+        },
+        {
+          "id": "remove_slave_from_zone",
+          "title": {
+            "en" : "Remove slave from zone"
+          },
+          "fluidArgs": true,
+          "args":[
+            {
+              "name": "device",
+              "type": "device",
+              "filter": "driver_id=soundtouch"
+            },
+            {
+              "name": "slave",
+              "type": "device",
+              "placeholder": {
+                "en": "Pick a soundtouch device to remove from the zone"
               },
               "filter": "driver_id=soundtouch"
             }
@@ -131,6 +199,14 @@
                             "hint": {
                                 "en": "To make sure Homey stays connected, give your Bose Soundtouch devices static IP addresses."
                             }
+                        },
+                        {
+                          "id": "mac",
+                          "type": "text",
+                          "label": {
+                            "en": "Mac address"
+                          },
+                          "value": ""
                         }
                     ]
                 }
