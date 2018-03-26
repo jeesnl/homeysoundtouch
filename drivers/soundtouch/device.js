@@ -15,6 +15,14 @@ class SoundtouchDevice extends Homey.Device {
                 callback(null, true);
             });
 
+        const createZoneWithAction = new Homey.FlowCardAction('create_zone_with');
+        createZoneWithAction.register()
+            .on('run', async (args, state, callback) => {
+                console.log(args);
+                console.log(state);
+                callback(null, true);
+            });
+
         this.registerMultipleCapabilityListener(['speaker_playing', 'speaker_prev', 'speaker_next', 'volume_set', 'volume_mute'], (value, opts) => {
             if (value.speaker_playing !== undefined) {
                 if (value.speaker_playing === true) {
@@ -66,12 +74,25 @@ class SoundtouchDevice extends Homey.Device {
 
     sendKeyCommand(state, value) {
         this.log(value, state);
-        Fetch('http://' + this.getSettings().ip + ':8090/key', {method: 'POST', body: '<key state="' + state + '" sender="Gabbo">' + value + '</key>'});
+        this.postToSoundtouch('/key', '<key state="' + state + '" sender="Gabbo">' + value + '</key>');
     }
 
     setVolume(volume) {
         this.log('volume', volume);
-        Fetch('http://' + this.getSettings().ip + ':8090/volume', {method: 'POST', body: '<volume>' + volume * 100 + '</volume>'});
+        this.postToSoundtouch('/volume', '<volume>' + volume * 100 + '</volume>');
+    }
+
+    createZone() {
+        this.log('create zone');
+        this.postToSoundtouch('/setZone',
+            '<zone master="' + this.getSettings().mac + '">\n' +
+            '  <member ipaddress="$IPADDR">$MACADDR</member>\n' +
+            '  ...\n' +
+            '</zone>');
+    }
+
+    postToSoundtouch(uri, body) {
+        Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'POST', body: body});
     }
 }
 

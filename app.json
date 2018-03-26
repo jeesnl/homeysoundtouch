@@ -71,6 +71,28 @@
               ]
             }
           ]
+        },
+        {
+          "id": "create_zone_with",
+          "title": {
+            "en" : "Create zone with"
+          },
+          "fluidArgs": true,
+          "args":[
+            {
+              "name": "device",
+              "type": "device",
+              "filter": "driver_id=soundtouch"
+            },
+            {
+              "name": "device",
+              "type": "device",
+              "placeholder": {
+                "en": "Pick a soundtouch device to add to the zone"
+              },
+              "filter": "driver_id=soundtouch"
+            }
+          ]
         }
       ]
     },
