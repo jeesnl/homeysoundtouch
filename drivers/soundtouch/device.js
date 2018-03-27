@@ -4,12 +4,13 @@ const Homey = require('homey');
 const Fetch = require('node-fetch');
 const XmlParser = require('xml2js').Parser();
 
+const POLL_INTERVAL = 5000;
+
 class SoundtouchDevice extends Homey.Device {
 
     // this method is called when the Device is inited
     onInit() {
-        this.log('device init');
-        this.log(this.getState());
+        this._registerCapabilities();
 
         const playPresetAction = new Homey.FlowCardAction('play_preset');
         playPresetAction.register()
@@ -32,38 +33,10 @@ class SoundtouchDevice extends Homey.Device {
                 callback(null, true);
             });
 
-        this.registerMultipleCapabilityListener(['speaker_playing', 'speaker_prev', 'speaker_next', 'volume_set', 'volume_mute'], (value, opts) => {
-            if (value.speaker_playing !== undefined) {
-                if (value.speaker_playing === true) {
-                    this.sendKeyCommand('press', 'PLAY');
-                } else {
-                    this.sendKeyCommand('press', 'PAUSE');
-                }
-            }
-
-            if (value.speaker_prev !== undefined) {
-                this.sendKeyCommand('press', 'PREV_TRACK');
-            }
-
-            if (value.speaker_next !== undefined) {
-                this.sendKeyCommand('press', 'NEXT_TRACK');
-            }
-
-            if (value.volume_set !== undefined) {
-                this.setVolume(value.volume_set);
-            }
-
-            if (value.volume_mute !== undefined) {
-                this.sendKeyCommand('press', 'MUTE');
-            }
-
-            return Promise.resolve();
-        }, 500);
-
         //poll playing state of speaker
         setInterval(() => {
             this.pollSpeakerState();
-        }, 5000)
+        }, POLL_INTERVAL)
     }
 
     // this method is called when the Device is added
@@ -80,9 +53,40 @@ class SoundtouchDevice extends Homey.Device {
         this.log('device deleted');
     }
 
-    onSettings(oldSettings, newSettings, changedKeys, callback) {
-        this.log('settings changed', newSettings);
-        callback(null);
+    _registerCapabilities() {
+        const capabilitySetMap = new Map([
+            ['speaker_playing', this.play],
+            ['speaker_prev', this.prev],
+            ['speaker_next', this.next],
+            ['volume_set', this.setVolume]
+        ]);
+        this.getCapabilities().forEach(capability =>
+        this.registerCapabilityListener(capability, (value) => {
+            return capabilitySetMap.get(capability).call(this, value)
+                .catch(err => {
+                    return Promise.reject(err);
+                });
+        }))
+    }
+
+    play(state) {
+        if (state.speaker_playing === true) {
+            this.sendKeyCommand('press', 'PLAY');
+        } else {
+            this.sendKeyCommand('press', 'PAUSE');
+        }
+    }
+
+    prev(state) {
+        this.sendKeyCommand('press', 'PREV_TRACK');
+    }
+
+    next(state) {
+        this.sendKeyCommand('press', 'NEXT_TRACK');
+    }
+
+    setVolume(state) {
+        this.sendVolumeCommand(state.volume_set);
     }
 
     sendKeyCommand(state, value) {
@@ -90,7 +94,7 @@ class SoundtouchDevice extends Homey.Device {
         this.postToSoundtouch('/key', '<key state="' + state + '" sender="Gabbo">' + value + '</key>');
     }
 
-    setVolume(volume) {
+    sendVolumeCommand(volume) {
         this.log('volume', volume);
         this.postToSoundtouch('/volume', '<volume>' + volume * 100 + '</volume>');
     }
@@ -133,10 +137,14 @@ class SoundtouchDevice extends Homey.Device {
             .then(res => res.text())
             .then(body => {
                 XmlParser.parseString(body, (err, result) => {
-                    self.setCapabilityValue('volume_set', parseInt(result.volume.targetvolume[0]) / 100);
-                    self.setCapabilityValue('volume_mute', (result.volume.muteenabled[0] === 'true'));
+                    self.changeState('volume_set', parseInt(result.volume.targetvolume[0]) / 100);
+                    self.changeState('volume_mute', (result.volume.muteenabled[0] === 'true'));
                 });
             });
+    }
+
+    changeState(capability, value) {
+        this.setCapabilityValue(capability, value);
     }
 }
 
