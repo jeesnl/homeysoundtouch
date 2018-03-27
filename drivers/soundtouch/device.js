@@ -5,6 +5,7 @@ const Fetch = require('node-fetch');
 const XmlParser = require('xml2js').Parser();
 
 class SoundtouchDevice extends Homey.Device {
+
     // this method is called when the Device is inited
     onInit() {
         this.log('device init');
@@ -30,13 +31,6 @@ class SoundtouchDevice extends Homey.Device {
                 this.removeFromZone(args.slave);
                 callback(null, true);
             });
-
-        let isPlayingTrigger = new Homey.FlowCardTrigger('is_playing');
-        isPlayingTrigger
-            .registerRunListener(( args, state ) => {
-                return Promise.resolve();
-            })
-            .register();
 
         this.registerMultipleCapabilityListener(['speaker_playing', 'speaker_prev', 'speaker_next', 'volume_set', 'volume_mute'], (value, opts) => {
             if (value.speaker_playing !== undefined) {
@@ -68,11 +62,9 @@ class SoundtouchDevice extends Homey.Device {
 
         //poll playing state of speaker
         setInterval(() => {
-            this.pollAndSetSpeakerPlaying();
+            this.pollSpeakerState();
         }, 5000)
     }
-
-
 
     // this method is called when the Device is added
     onAdded() {
@@ -123,22 +115,26 @@ class SoundtouchDevice extends Homey.Device {
         Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'POST', body: body});
     }
 
-    pollAndSetSpeakerPlaying() {
+    pollSpeakerState() {
         const self = this;
         Fetch('http://' + this.getSettings().ip + ':8090' + '/now_playing', {method: 'GET'})
             .then(res => res.text())
             .then(body => {
                 XmlParser.parseString(body, (err, result) => {
                     if (result.nowPlaying.$.source !== 'STANDBY') {
-                        if (self.getCapabilityValue('speaker_playing') !== true) {
-                            self.isPlayingTrigger.trigger( tokens, state )
-                                .then( this.log )
-                                .catch( this.error )
-                        }
                         self.setCapabilityValue('speaker_playing', true);
                     } else {
                         self.setCapabilityValue('speaker_playing', false);
                     }
+                });
+            });
+
+        Fetch('http://' + this.getSettings().ip + ':8090' + '/volume', {method: 'GET'})
+            .then(res => res.text())
+            .then(body => {
+                XmlParser.parseString(body, (err, result) => {
+                    self.setCapabilityValue('volume_set', parseInt(result.volume.targetvolume[0]) / 100);
+                    self.setCapabilityValue('volume_mute', (result.volume.muteenabled[0] === 'true'));
                 });
             });
     }
