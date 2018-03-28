@@ -33,6 +33,9 @@ class SoundtouchDevice extends Homey.Device {
                 callback(null, true);
             });
 
+        this.startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
+            .register();
+
         //poll playing state of speaker
         setInterval(() => {
             this.pollSpeakerState();
@@ -70,23 +73,28 @@ class SoundtouchDevice extends Homey.Device {
     }
 
     play(state) {
-        if (state.speaker_playing === true) {
+        if (state === true) {
             this.sendKeyCommand('press', 'PLAY');
         } else {
             this.sendKeyCommand('press', 'PAUSE');
         }
+        return Promise.resolve();
     }
 
     prev(state) {
         this.sendKeyCommand('press', 'PREV_TRACK');
+        return Promise.resolve();
     }
 
     next(state) {
         this.sendKeyCommand('press', 'NEXT_TRACK');
+        return Promise.resolve();
     }
 
-    setVolume(state) {
-        this.sendVolumeCommand(state.volume_set);
+    setVolume(volume) {
+        this.log(volume);
+        this.sendVolumeCommand(volume);
+        return Promise.resolve();
     }
 
     sendKeyCommand(state, value) {
@@ -125,7 +133,7 @@ class SoundtouchDevice extends Homey.Device {
             .then(res => res.text())
             .then(body => {
                 XmlParser.parseString(body, (err, result) => {
-                    if (result.nowPlaying.$.source !== 'STANDBY') {
+                    if (result.nowPlaying.$.source !== 'STANDBY' && result.nowPlaying.playStatus[0] !== 'PAUSE_STATE') {
                         self.setCapabilityValue('speaker_playing', true);
                     } else {
                         self.setCapabilityValue('speaker_playing', false);
