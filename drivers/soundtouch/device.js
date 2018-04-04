@@ -36,6 +36,9 @@ class SoundtouchDevice extends Homey.Device {
         this.startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
             .register();
 
+        this.stoppedPlayingTrigger = new Homey.FlowCardTriggerDevice('stopped_playing')
+            .register();
+
         //poll playing state of speaker
         setInterval(() => {
             this.pollSpeakerState();
@@ -134,8 +137,14 @@ class SoundtouchDevice extends Homey.Device {
             .then(body => {
                 XmlParser.parseString(body, (err, result) => {
                     if (result.nowPlaying.$.source !== 'STANDBY' && result.nowPlaying.playStatus[0] !== 'PAUSE_STATE') {
+                        if (self.getCapabilityValue('speaker_playing') === false) {
+                            self.startedPlayingTrigger.trigger(self, null).catch(e => console.log(e));
+                        }
                         self.setCapabilityValue('speaker_playing', true);
                     } else {
+                        if (self.getCapabilityValue('speaker_playing') === true) {
+                            self.stoppedPlayingTrigger.trigger(self, null).catch(e => console.log(e));
+                        }
                         self.setCapabilityValue('speaker_playing', false);
                     }
                 });
@@ -145,14 +154,10 @@ class SoundtouchDevice extends Homey.Device {
             .then(res => res.text())
             .then(body => {
                 XmlParser.parseString(body, (err, result) => {
-                    self.changeState('volume_set', parseInt(result.volume.targetvolume[0]) / 100);
-                    self.changeState('volume_mute', (result.volume.muteenabled[0] === 'true'));
+                    self.setCapabilityValue('volume_set', parseInt(result.volume.targetvolume[0]) / 100);
+                    self.setCapabilityValue('volume_mute', (result.volume.muteenabled[0] === 'true'));
                 });
             });
-    }
-
-    changeState(capability, value) {
-        this.setCapabilityValue(capability, value);
     }
 }
 
