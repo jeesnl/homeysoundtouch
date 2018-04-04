@@ -143,6 +143,80 @@
               "filter": "driver_id=soundtouch"
             }
           ]
+        },
+        {
+          "id": "bass_capability",
+          "title": {
+            "en" : "Set bass reduction"
+          },
+          "fluidArgs": true,
+          "args":[
+            {
+              "name": "device",
+              "type": "device",
+              "filter": "driver_id=soundtouch"
+            },
+            {
+              "name": "bass_number",
+              "type": "dropdown",
+              "values": [
+                {
+                  "id": "0",
+                  "label": {
+                    "en": "0"
+                  }
+                },
+                {
+                  "id": "-1",
+                  "label": {
+                    "en": "-1"
+                  }
+                },
+                {
+                  "id": "-2",
+                  "label": {
+                    "en": "-2"
+                  }
+                },
+                {
+                  "id": "-3",
+                  "label": {
+                    "en": "-3"
+                  }
+                },
+                {
+                  "id": "-4",
+                  "label": {
+                    "en": "-5"
+                  }
+                },
+                {
+                  "id": "-6",
+                  "label": {
+                    "en": "-6"
+                  }
+                },
+                {
+                  "id": "-7",
+                  "label": {
+                    "en": "-7"
+                  }
+                },
+                {
+                  "id": "-8",
+                  "label": {
+                    "en": "-8"
+                  }
+                },
+                {
+                  "id": "-9",
+                  "label": {
+                    "en": "-9"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },

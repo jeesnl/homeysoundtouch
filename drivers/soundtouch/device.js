@@ -19,6 +19,14 @@ class SoundtouchDevice extends Homey.Device {
                 callback(null, true);
             });
 
+        const setBassCapability = new Homey.FlowCardAction('bass_capability');
+        setBassCapability.register()
+            .on('run', async (args, state, callback) => {
+                console.log(args);
+                this.sendBassCommand(args.bass_number);
+                callback(null, true);
+            });
+
         const createZoneWithAction = new Homey.FlowCardAction('create_zone_with');
         createZoneWithAction.register()
             .on('run', (args, state, callback) => {
@@ -108,6 +116,11 @@ class SoundtouchDevice extends Homey.Device {
     sendVolumeCommand(volume) {
         this.log('volume', volume);
         this.postToSoundtouch('/volume', '<volume>' + volume * 100 + '</volume>');
+    }
+
+    sendBassCommand(bass) {
+        this.log('bass', bass);
+        this.postToSoundtouch('/bass', '<bass>' + bass + '</bass>');
     }
 
     createZone(slave) {
