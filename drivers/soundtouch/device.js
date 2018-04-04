@@ -12,6 +12,27 @@ class SoundtouchDevice extends Homey.Device {
     onInit() {
         this._registerCapabilities();
 
+        this.startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
+            .register();
+
+        this.stoppedPlayingTrigger = new Homey.FlowCardTriggerDevice('stopped_playing')
+            .register();
+
+        const isPlayingCondition = new Homey.FlowCardCondition('is_playing')
+            .register()
+            .registerRunListener((args, state) => {
+                const playing = this.getCapabilityValue('speaker_playing', true);
+                return Promise.resolve(playing);
+            });
+
+        const isInZoneCondition = new Homey.FlowCardCondition('is_in_zone')
+            .register()
+            .registerRunListener(async (args, state) => {
+                const isInZone = await this.getZone();
+                return Promise.resolve(isInZone);
+            });
+
+
         const playPresetAction = new Homey.FlowCardAction('play_preset');
         playPresetAction.register()
             .on('run', async (args, state, callback) => {
@@ -22,7 +43,6 @@ class SoundtouchDevice extends Homey.Device {
         const setBassCapability = new Homey.FlowCardAction('bass_capability');
         setBassCapability.register()
             .on('run', async (args, state, callback) => {
-                console.log(args);
                 this.sendBassCommand(args.bass_number);
                 callback(null, true);
             });
@@ -34,18 +54,19 @@ class SoundtouchDevice extends Homey.Device {
                 callback(null, true);
             });
 
+        const addSlaveToZone = new Homey.FlowCardAction('add_slave_to_zone');
+        addSlaveToZone.register()
+            .on('run', (args, state, callback) => {
+                this.addSlave(args.slave);
+                callback(null, true);
+            });
+
         const removeSlaveFromZoneAction = new Homey.FlowCardAction('remove_slave_from_zone');
         removeSlaveFromZoneAction.register()
             .on('run', (args, state, callback) => {
                 this.removeFromZone(args.slave);
                 callback(null, true);
             });
-
-        this.startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
-            .register();
-
-        this.stoppedPlayingTrigger = new Homey.FlowCardTriggerDevice('stopped_playing')
-            .register();
 
         //poll playing state of speaker
         setInterval(() => {
@@ -123,12 +144,35 @@ class SoundtouchDevice extends Homey.Device {
         this.postToSoundtouch('/bass', '<bass>' + bass + '</bass>');
     }
 
+    async getZone() {
+        return new Promise(async (resolve, reject) => {
+            const res = await Fetch('http://' + this.getSettings().ip + ':8090' + '/getZone', {method: 'GET'});
+            const txt = await res.text();
+            XmlParser.parseString(txt, (err, result) => {
+                if (result.zone !== '') {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
+            reject(false);
+        });
+    }
+
     createZone(slave) {
         this.log('create zone with', slave.getName());
         this.postToSoundtouch('/setZone',
             '<zone master="' + this.getData().mac + '">' +
             '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
             '</zone>');
+    }
+
+    addSlave(slave) {
+        this.log('add slave to zone', slave.getName());
+        this.postToSoundtouch('/addZoneSlave',
+            '<zone master="' + this.getData().mac + '">' +
+            '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
+            '</zone>')
     }
 
     removeFromZone(slave) {

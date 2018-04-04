@@ -16,209 +16,259 @@
     },
     "flow": {
     "triggers": [
-        {
-          "id": "started_playing",
-          "title": {
-            "en": "Started playing"
-          },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "filter": "driver_id=soundtouch"
-            }
-          ]
+      {
+        "id": "started_playing",
+        "title": {
+          "en": "Started playing"
         },
-        {
-          "id": "stopped_playing",
-          "title": {
-            "en": "Stopped playing"
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
+        "id": "stopped_playing",
+        "title": {
+          "en": "Stopped playing"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "is_playing",
+        "title": {
+          "en": "!{{Is|Isn't}} playing"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
+        "id": "is_in_zone",
+        "title": {
+          "en": "!{{Is|Isn't}} in a zone"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "play_preset",
+        "title": {
+          "en" : "Play a preset"
+        },
+        "fluidArgs": true,
+        "args":[
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
           },
-          "args": [
-            {
-              "name": "device",
-              "type": "device",
-              "filter": "driver_id=soundtouch"
-            }
-          ]
-        }
-      ],
-      "actions": [
-        {
-          "id": "play_preset",
-          "title": {
-            "en" : "Play a preset"
-          },
-          "fluidArgs": true,
-          "args":[
-            {
-              "name": "device",
-              "type": "device",
-              "filter": "driver_id=soundtouch"
-            },
-            {
-              "name": "preset_number",
-              "type": "dropdown",
-              "values": [
-                {
-                  "id": "1",
-                  "label": {
-                    "en": "1"
-                  }
-                },
-                {
-                  "id": "2",
-                  "label": {
-                    "en": "2"
-                  }
-                },
-                {
-                  "id": "3",
-                  "label": {
-                    "en": "3"
-                  }
-                },
-                {
-                  "id": "4",
-                  "label": {
-                    "en": "4"
-                  }
-                },
-                {
-                  "id": "5",
-                  "label": {
-                    "en": "5"
-                  }
-                },
-                {
-                  "id": "6",
-                  "label": {
-                    "en": "6"
-                  }
+          {
+            "name": "preset_number",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "1",
+                "label": {
+                  "en": "1"
                 }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "create_zone_with",
-          "title": {
-            "en" : "Create zone with"
-          },
-          "fluidArgs": true,
-          "args":[
-            {
-              "name": "device",
-              "type": "device",
-              "filter": "driver_id=soundtouch"
-            },
-            {
-              "name": "slave",
-              "type": "device",
-              "placeholder": {
-                "en": "Pick a soundtouch device to add to the zone"
               },
-              "filter": "driver_id=soundtouch"
-            }
-          ]
-        },
-        {
-          "id": "remove_slave_from_zone",
-          "title": {
-            "en" : "Remove slave from zone"
-          },
-          "fluidArgs": true,
-          "args":[
-            {
-              "name": "device",
-              "type": "device",
-              "filter": "driver_id=soundtouch"
-            },
-            {
-              "name": "slave",
-              "type": "device",
-              "placeholder": {
-                "en": "Pick a soundtouch device to remove from the zone"
-              },
-              "filter": "driver_id=soundtouch"
-            }
-          ]
-        },
-        {
-          "id": "bass_capability",
-          "title": {
-            "en" : "Set bass reduction"
-          },
-          "fluidArgs": true,
-          "args":[
-            {
-              "name": "device",
-              "type": "device",
-              "filter": "driver_id=soundtouch"
-            },
-            {
-              "name": "bass_number",
-              "type": "dropdown",
-              "values": [
-                {
-                  "id": "0",
-                  "label": {
-                    "en": "0"
-                  }
-                },
-                {
-                  "id": "-1",
-                  "label": {
-                    "en": "-1"
-                  }
-                },
-                {
-                  "id": "-2",
-                  "label": {
-                    "en": "-2"
-                  }
-                },
-                {
-                  "id": "-3",
-                  "label": {
-                    "en": "-3"
-                  }
-                },
-                {
-                  "id": "-4",
-                  "label": {
-                    "en": "-5"
-                  }
-                },
-                {
-                  "id": "-6",
-                  "label": {
-                    "en": "-6"
-                  }
-                },
-                {
-                  "id": "-7",
-                  "label": {
-                    "en": "-7"
-                  }
-                },
-                {
-                  "id": "-8",
-                  "label": {
-                    "en": "-8"
-                  }
-                },
-                {
-                  "id": "-9",
-                  "label": {
-                    "en": "-9"
-                  }
+              {
+                "id": "2",
+                "label": {
+                  "en": "2"
                 }
-              ]
-            }
-          ]
-        }
-      ]
+              },
+              {
+                "id": "3",
+                "label": {
+                  "en": "3"
+                }
+              },
+              {
+                "id": "4",
+                "label": {
+                  "en": "4"
+                }
+              },
+              {
+                "id": "5",
+                "label": {
+                  "en": "5"
+                }
+              },
+              {
+                "id": "6",
+                "label": {
+                  "en": "6"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "create_zone_with",
+        "title": {
+          "en" : "Create zone with"
+        },
+        "fluidArgs": true,
+        "args":[
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "slave",
+            "type": "device",
+            "placeholder": {
+              "en": "Soundtouch device"
+            },
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
+        "id": "add_slave_to_zone",
+        "title": {
+          "en" : "Add slave to zone"
+        },
+        "fluidArgs": true,
+        "args":[
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "slave",
+            "type": "device",
+            "placeholder": {
+              "en": "Soundtouch device"
+            },
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
+        "id": "remove_slave_from_zone",
+        "title": {
+          "en" : "Remove slave from zone"
+        },
+        "fluidArgs": true,
+        "args":[
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "slave",
+            "type": "device",
+            "placeholder": {
+              "en": "Pick a soundtouch device to remove from the zone"
+            },
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
+        "id": "bass_capability",
+        "title": {
+          "en" : "Set bass reduction"
+        },
+        "fluidArgs": true,
+        "args":[
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "bass_number",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "0"
+                }
+              },
+              {
+                "id": "-1",
+                "label": {
+                  "en": "-1"
+                }
+              },
+              {
+                "id": "-2",
+                "label": {
+                  "en": "-2"
+                }
+              },
+              {
+                "id": "-3",
+                "label": {
+                  "en": "-3"
+                }
+              },
+              {
+                "id": "-4",
+                "label": {
+                  "en": "-5"
+                }
+              },
+              {
+                "id": "-6",
+                "label": {
+                  "en": "-6"
+                }
+              },
+              {
+                "id": "-7",
+                "label": {
+                  "en": "-7"
+                }
+              },
+              {
+                "id": "-8",
+                "label": {
+                  "en": "-8"
+                }
+              },
+              {
+                "id": "-9",
+                "label": {
+                  "en": "-9"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
     },
     "drivers": [
         {
