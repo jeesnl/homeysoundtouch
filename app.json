@@ -2,11 +2,12 @@
     "id": "com.slicinghaunt.bosesoundtouch",
     "sdk": 2,
     "name": {
-        "en": "Bose Soundtouch"
+        "en": "Bose Soundtouch",
+        "nl": "Bose Soundtouch"
     },
     "tags": {
-      "en": ["Bose", "Soundtouch", "Speaker", "Music"],
-      "nl": ["Bose", "Soundtouch", "Luidspreker", "Muziek"]
+        "en": ["Bose", "Soundtouch", "Speaker", "Music"],
+        "nl": ["Bose", "Soundtouch", "Luidspreker", "Muziek"]
     },
     "description": {
         "en": "Adds support for Bose Soundtouch devices.",
@@ -290,7 +291,8 @@
         {
             "id": "soundtouch",
             "name": {
-                "en": "Bose Soundtouch"
+                "en": "Bose Soundtouch",
+                "nl": "Bose Soundtouch"
             },
             "images": {
                 "large": "/drivers/soundtouch/assets/images/large.png",
@@ -308,18 +310,21 @@
                 {
                     "type": "group",
                     "label": {
-                        "en": "General settings"
+                        "en": "General settings",
+                        "nl": "Instellingen"
                     },
                     "children": [
                         {
                             "id": "ip",
                             "type": "text",
                             "label": {
-                                "en": "Ip address"
+                                "en": "Ip address",
+                                "nl": "Ip adres"
                             },
                             "value": "192.168.1.1",
                             "hint": {
-                                "en": "To make sure Homey stays connected, give your Bose Soundtouch devices static IP addresses."
+                                "en": "To make sure Homey stays connected, give your Bose Soundtouch devices static IP addresses.",
+                                "nl": "Om er zeker van te zijn dat Homey verbonden blijft, geef het Bose apparaat een statisch Ip adres."
                             }
                         }
                     ]
