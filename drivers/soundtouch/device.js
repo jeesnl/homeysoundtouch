@@ -171,15 +171,14 @@ class SoundtouchDevice extends Homey.Device {
         try {
             const res = await Fetch('http://' + this.getSettings().ip + ':8090' + '/getZone', {method: 'GET'});
             const txt = await res.text();
-            XmlParser.parseString(txt, (err, result) => {
-                if (result.zone !== '') {
-                    return Promise.resolve(true);
-                } else {
-                    return Promise.resolve(false);
-                }
-            });
+            const jsObj = await this._parseXML(txt);
+            if (jsObj.zone !== '') {
+                return true;
+            } else {
+                return false;
+            }
         } catch (e) {
-            return Promise.reject(e);
+            reject(e);
         }
     }
 
@@ -231,33 +230,43 @@ class SoundtouchDevice extends Homey.Device {
         try {
             const res = await  Fetch('http://' + this.getSettings().ip + ':8090' + '/now_playing', {method: 'GET'});
             const body = await res.text();
-            XmlParser.parseString(body, (err, result) => {
-                const isAlreadyPlaying = this.getCapabilityValue('speaker_playing');
-                if (result.nowPlaying.$.source !== 'STANDBY' && result.nowPlaying.playStatus[0] !== 'PAUSE_STATE') {
-                    if (!isAlreadyPlaying) {
-                        this._startedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
-                    }
-                    this.setCapabilityValue('speaker_playing', true);
-                } else {
-                    if (isAlreadyPlaying) {
-                        this._stoppedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
-                    }
-                    this.setCapabilityValue('speaker_playing', false);
+            const jsObj = await this._parseXML(body);
+            const isAlreadyPlaying = this.getCapabilityValue('speaker_playing');
+            if (jsObj.nowPlaying.$.source !== 'STANDBY' && jsObj.nowPlaying.playStatus[0] !== 'PAUSE_STATE') {
+                if (!isAlreadyPlaying) {
+                    this._startedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
                 }
-            });
+                this.setCapabilityValue('speaker_playing', true);
+            } else {
+                if (isAlreadyPlaying) {
+                    this._stoppedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
+                }
+                this.setCapabilityValue('speaker_playing', false);
+            }
         } catch (e) {
             return e;
         }
         try {
             const res = await  Fetch('http://' + this.getSettings().ip + ':8090' + '/volume', {method: 'GET'});
             const body = await res.text();
-            XmlParser.parseString(body, (err, result) => {
-                this.setCapabilityValue('volume_set', parseInt(result.volume.targetvolume[0]) / 100);
-                this.setCapabilityValue('volume_mute', (result.volume.muteenabled[0] === 'true'));
-            });
+            const jsObj = await this._parseXML(body);
+            this.setCapabilityValue('volume_set', parseInt(jsObj.volume.targetvolume[0]) / 100);
+            this.setCapabilityValue('volume_mute', (jsObj.volume.muteenabled[0] === 'true'));
         } catch (e) {
             return e;
         }
+    }
+
+    async _parseXML(xml) {
+        return new Promise((resolve, reject) => {
+            XmlParser.parseString(xml, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
     }
 }
 
