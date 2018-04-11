@@ -21,51 +21,73 @@ class SoundtouchDevice extends Homey.Device {
         const _isPlayingCondition = new Homey.FlowCardCondition('is_playing')
             .register()
             .registerRunListener((args, state) => {
-                const playing = this.getCapabilityValue('speaker_playing', true);
-                return Promise.resolve(playing);
+                return Promise.resolve(this.getCapabilityValue('speaker_playing', true));
             });
 
         const _isInZoneCondition = new Homey.FlowCardCondition('is_in_zone')
             .register()
             .registerRunListener(async (args, state) => {
-                const isInZone = await this._getZone();
-                return Promise.resolve(isInZone);
+                try {
+                    return Promise.resolve(await this._getZone());
+                } catch (e) {
+                    return Promise.reject(e);
+                }
             });
 
 
         const _playPresetAction = new Homey.FlowCardAction('play_preset');
         _playPresetAction.register()
-            .on('run', async (args, state, callback) => {
-                this._sendKeyCommand('release', 'PRESET_' + args.preset_number);
-                callback(null, true);
+            .on('run', async (args, state) => {
+                try {
+                    await this._sendKeyCommand('release', 'PRESET_' + args.preset_number);
+                    return Promise.resolve(true);
+                } catch (e) {
+                    return Promise.reject(e);
+                }
             });
 
         const _setBassCapability = new Homey.FlowCardAction('bass_capability');
         _setBassCapability.register()
-            .on('run', async (args, state, callback) => {
-                this._sendBassCommand(args.bass_number);
-                callback(null, true);
+            .on('run', async (args, state) => {
+                try {
+                    await this._sendBassCommand(args.bass_number);
+                    return Promise.resolve(true);
+                } catch (e) {
+                    return Promise.reject(e);
+                }
             });
 
         const _createZoneWithAction = new Homey.FlowCardAction('create_zone_with');
         _createZoneWithAction.register()
-            .on('run', (args, state, callback) => {
-                this._createZone(args.slave);
-                callback(null, true);
+            .on('run', async (args, state) => {
+                try {
+                    await this._createZone(args.slave);
+                    return Promise.resolve(true);
+                } catch (e) {
+                    return promise.reject(e);
+                }
             });
 
         const _addSlaveToZoneAction = new Homey.FlowCardAction('add_slave_to_zone');
         _addSlaveToZoneAction.register()
-            .on('run', (args, state, callback) => {
-                this._addSlave(args.slave);
-                callback(null, true);
+            .on('run', async (args, state) => {
+                try {
+                    await this._addSlave(args.slave);
+                    return Promise.resolve(true);
+                } catch (e) {
+                    return Promise.reject(e);
+                }
             });
 
         const _removeSlaveFromZoneAction = new Homey.FlowCardAction('remove_slave_from_zone');
         _removeSlaveFromZoneAction.register()
-            .on('run', (args, state, callback) => {
-                this._removeFromZone(args.slave);
-                callback(null, true);
+            .on('run', async (args, state) => {
+                try {
+                    await this._removeFromZone(args.slave);
+                    return Promise.resolve();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
             });
 
         //poll playing state of speaker
