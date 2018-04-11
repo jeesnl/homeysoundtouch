@@ -1,1 +1,14 @@
-{}
+{
+  "pair": {
+    "start": {
+      "title": "Bose Soundtouch Setup",
+      "intro": {
+        "instructions": "Enter the Ip address of the Bose Soundtouch Device, the rest will be done automatically.",
+        "hint": "To make sure Homey stays connected, make sure the device has a static Ip address."
+      },
+      "ipaddress": "Ip address",
+      "saveDevice": "Save",
+      "required": "Ip address is required"
+    }
+  }
+}

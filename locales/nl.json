@@ -1,0 +1,14 @@
+{
+  "pair": {
+    "start": {
+      "title": "Bose Soundtouch instellen",
+      "intro": {
+        "instructions": "Voer het Ip adres van het Bose Soundtouch apparaat in. De rest gebeurd vanzelf.",
+        "hint": "Om er zeker van te zijn dat Homey verbonden blijft, geef het Soundtouch apparaat een statisch Ip adres."
+      },
+      "ipaddress": "Ip adres",
+      "saveDevice": "Opslaan",
+      "required": "Ip adres is vereist"
+    }
+  }
+}

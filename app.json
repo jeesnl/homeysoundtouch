@@ -17,6 +17,8 @@
       "large": "/assets/images/large.png",
       "small": "/assets/images/small.png"
     },
+    "copyright": "Stefan Simon <stefan@stefansimon.nl>",
+    "license": " WTFPL",
     "contributing": {
       "donate": {
         "paypal": {
@@ -36,7 +38,8 @@
       {
         "id": "started_playing",
         "title": {
-          "en": "Started playing"
+          "en": "Started playing",
+          "nl": "Begon met spelen"
         },
         "args": [
           {
@@ -49,7 +52,8 @@
       {
         "id": "stopped_playing",
         "title": {
-          "en": "Stopped playing"
+          "en": "Stopped playing",
+          "nl": "Gestopt met spelen"
         },
         "args": [
           {
@@ -64,7 +68,8 @@
       {
         "id": "is_playing",
         "title": {
-          "en": "!{{Is|Isn't}} playing"
+          "en": "Is !{{playing|paused}}",
+          "nl": "Is nu !{{aan het spelen|gepauzeerd}}"
         },
         "args": [
           {
@@ -77,7 +82,8 @@
       {
         "id": "is_in_zone",
         "title": {
-          "en": "!{{Is|Isn't}} in a zone"
+          "en": "!{{Is|Isn't}} in a zone",
+          "nl": "Is !{{|niet}} in een zone"
         },
         "args": [
           {
@@ -92,7 +98,8 @@
       {
         "id": "play_preset",
         "title": {
-          "en" : "Play a preset"
+          "en": "Play a preset",
+          "nl": "Speel een preset"
         },
         "fluidArgs": true,
         "args":[
@@ -148,7 +155,8 @@
       {
         "id": "create_zone_with",
         "title": {
-          "en" : "Create zone with"
+          "en": "Create zone with",
+          "nl": "Maak zone met"
         },
         "fluidArgs": true,
         "args":[
@@ -161,7 +169,8 @@
             "name": "slave",
             "type": "device",
             "placeholder": {
-              "en": "Soundtouch device"
+              "en": "Soundtouch device",
+              "nl": "Soundtouch apparaat"
             },
             "filter": "driver_id=soundtouch"
           }
@@ -170,7 +179,8 @@
       {
         "id": "add_slave_to_zone",
         "title": {
-          "en" : "Add slave to zone"
+          "en": "Add slave to zone",
+          "nl": "Voeg slaaf toe aan zone"
         },
         "fluidArgs": true,
         "args":[
@@ -183,7 +193,8 @@
             "name": "slave",
             "type": "device",
             "placeholder": {
-              "en": "Soundtouch device"
+              "en": "Soundtouch device",
+              "nl": "Soundtouch apparaat"
             },
             "filter": "driver_id=soundtouch"
           }
@@ -192,7 +203,8 @@
       {
         "id": "remove_slave_from_zone",
         "title": {
-          "en" : "Remove slave from zone"
+          "en": "Remove slave from zone",
+          "nl": "Verwijder slaaf van zone"
         },
         "fluidArgs": true,
         "args":[
@@ -205,7 +217,8 @@
             "name": "slave",
             "type": "device",
             "placeholder": {
-              "en": "Pick a soundtouch device to remove from the zone"
+              "en": "Soundtouch device",
+              "nl": "Soundtouch apparaat"
             },
             "filter": "driver_id=soundtouch"
           }
@@ -214,7 +227,8 @@
       {
         "id": "bass_capability",
         "title": {
-          "en" : "Set bass reduction"
+          "en": "Set bass reduction",
+          "nl": "Zet bass lager"
         },
         "fluidArgs": true,
         "args":[
@@ -323,7 +337,7 @@
                             },
                             "value": "192.168.1.1",
                             "hint": {
-                                "en": "To make sure Homey stays connected, give your Bose Soundtouch devices static IP addresses.",
+                                "en": "To make sure Homey stays connected, give your Bose Soundtouch devices static Ip addresses.",
                                 "nl": "Om er zeker van te zijn dat Homey verbonden blijft, geef het Bose apparaat een statisch Ip adres."
                             }
                         }
