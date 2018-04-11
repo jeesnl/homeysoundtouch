@@ -12,65 +12,65 @@ class SoundtouchDevice extends Homey.Device {
     onInit() {
         this._registerCapabilities();
 
-        this.startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
+        this._startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
             .register();
 
-        this.stoppedPlayingTrigger = new Homey.FlowCardTriggerDevice('stopped_playing')
+        this._stoppedPlayingTrigger = new Homey.FlowCardTriggerDevice('stopped_playing')
             .register();
 
-        const isPlayingCondition = new Homey.FlowCardCondition('is_playing')
+        const _isPlayingCondition = new Homey.FlowCardCondition('is_playing')
             .register()
             .registerRunListener((args, state) => {
                 const playing = this.getCapabilityValue('speaker_playing', true);
                 return Promise.resolve(playing);
             });
 
-        const isInZoneCondition = new Homey.FlowCardCondition('is_in_zone')
+        const _isInZoneCondition = new Homey.FlowCardCondition('is_in_zone')
             .register()
             .registerRunListener(async (args, state) => {
-                const isInZone = await this.getZone();
+                const isInZone = await this._getZone();
                 return Promise.resolve(isInZone);
             });
 
 
-        const playPresetAction = new Homey.FlowCardAction('play_preset');
-        playPresetAction.register()
+        const _playPresetAction = new Homey.FlowCardAction('play_preset');
+        _playPresetAction.register()
             .on('run', async (args, state, callback) => {
-                this.sendKeyCommand('release', 'PRESET_' + args.preset_number);
+                this._sendKeyCommand('release', 'PRESET_' + args.preset_number);
                 callback(null, true);
             });
 
-        const setBassCapability = new Homey.FlowCardAction('bass_capability');
-        setBassCapability.register()
+        const _setBassCapability = new Homey.FlowCardAction('bass_capability');
+        _setBassCapability.register()
             .on('run', async (args, state, callback) => {
-                this.sendBassCommand(args.bass_number);
+                this._sendBassCommand(args.bass_number);
                 callback(null, true);
             });
 
-        const createZoneWithAction = new Homey.FlowCardAction('create_zone_with');
-        createZoneWithAction.register()
+        const _createZoneWithAction = new Homey.FlowCardAction('create_zone_with');
+        _createZoneWithAction.register()
             .on('run', (args, state, callback) => {
-                this.createZone(args.slave);
+                this._createZone(args.slave);
                 callback(null, true);
             });
 
-        const addSlaveToZone = new Homey.FlowCardAction('add_slave_to_zone');
-        addSlaveToZone.register()
+        const _addSlaveToZoneAction = new Homey.FlowCardAction('add_slave_to_zone');
+        _addSlaveToZoneAction.register()
             .on('run', (args, state, callback) => {
-                this.addSlave(args.slave);
+                this._addSlave(args.slave);
                 callback(null, true);
             });
 
-        const removeSlaveFromZoneAction = new Homey.FlowCardAction('remove_slave_from_zone');
-        removeSlaveFromZoneAction.register()
+        const _removeSlaveFromZoneAction = new Homey.FlowCardAction('remove_slave_from_zone');
+        _removeSlaveFromZoneAction.register()
             .on('run', (args, state, callback) => {
-                this.removeFromZone(args.slave);
+                this._removeFromZone(args.slave);
                 callback(null, true);
             });
 
         //poll playing state of speaker
         setInterval(() => {
-            this.pollSpeakerState();
+            this._pollSpeakerState();
         }, POLL_INTERVAL)
     }
 
@@ -90,10 +90,10 @@ class SoundtouchDevice extends Homey.Device {
 
     _registerCapabilities() {
         const capabilitySetMap = new Map([
-            ['speaker_playing', this.play],
-            ['speaker_prev', this.prev],
-            ['speaker_next', this.next],
-            ['volume_set', this.setVolume]
+            ['speaker_playing', this._play],
+            ['speaker_prev', this._prev],
+            ['speaker_next', this._next],
+            ['volume_set', this._setVolume]
         ]);
         this.getCapabilities().forEach(capability =>
         this.registerCapabilityListener(capability, (value) => {
@@ -104,117 +104,160 @@ class SoundtouchDevice extends Homey.Device {
         }))
     }
 
-    play(state) {
-        if (state === true) {
-            this.sendKeyCommand('press', 'PLAY');
-        } else {
-            this.sendKeyCommand('press', 'PAUSE');
+    async _play(state) {
+        try {
+            if (state === true) {
+                return Promise.resolve(await this._sendKeyCommand('press', 'PLAY'));
+            } else {
+                return Promise.resolve(await this._sendKeyCommand('press', 'PAUSE'));
+            }
+        } catch (e) {
+            return Promise.reject(e);
         }
-        return Promise.resolve();
     }
 
-    prev(state) {
-        this.sendKeyCommand('press', 'PREV_TRACK');
-        return Promise.resolve();
+    async _prev(state) {
+        try {
+            return Promise.resolve(await this._sendKeyCommand('press', 'PREV_TRACK'));
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
-    next(state) {
-        this.sendKeyCommand('press', 'NEXT_TRACK');
-        return Promise.resolve();
+    async _next(state) {
+        try {
+            return Promise.resolve(await this._sendKeyCommand('press', 'NEXT_TRACK'));
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
-    setVolume(volume) {
-        this.log(volume);
-        this.sendVolumeCommand(volume);
-        return Promise.resolve();
+    async _setVolume(volume) {
+        try {
+            return Promise.resolve(await this._sendVolumeCommand(volume));
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
-    sendKeyCommand(state, value) {
+    async _sendKeyCommand(state, value) {
         this.log(value, state);
-        this.postToSoundtouch('/key', '<key state="' + state + '" sender="Gabbo">' + value + '</key>');
+        try {
+            return await this._postToSoundtouch('/key', '<key state="' + state + '" sender="Gabbo">' + value + '</key>');
+        } catch (e) {
+            return e;
+        }
     }
 
-    sendVolumeCommand(volume) {
+    async _sendVolumeCommand(volume) {
         this.log('volume', volume);
-        this.postToSoundtouch('/volume', '<volume>' + volume * 100 + '</volume>');
+        try {
+            return await this._postToSoundtouch('/volume', '<volume>' + volume * 100 + '</volume>');
+        } catch (e) {
+            return e;
+        }
     }
 
-    sendBassCommand(bass) {
+    async _sendBassCommand(bass) {
         this.log('bass', bass);
-        this.postToSoundtouch('/bass', '<bass>' + bass + '</bass>');
+        try {
+            return await this._postToSoundtouch('/bass', '<bass>' + bass + '</bass>');
+        } catch (e) {
+            return e;
+        }
     }
 
-    async getZone() {
-        return new Promise(async (resolve, reject) => {
+    async _getZone() {
+        try {
             const res = await Fetch('http://' + this.getSettings().ip + ':8090' + '/getZone', {method: 'GET'});
             const txt = await res.text();
             XmlParser.parseString(txt, (err, result) => {
                 if (result.zone !== '') {
-                    resolve(true);
+                    return Promise.resolve(true);
                 } else {
-                    resolve(false);
+                    return Promise.resolve(false);
                 }
             });
-            reject(false);
-        });
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
-    createZone(slave) {
+    async _createZone(slave) {
         this.log('create zone with', slave.getName());
-        this.postToSoundtouch('/setZone',
-            '<zone master="' + this.getData().mac + '">' +
-            '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
-            '</zone>');
+        try {
+            return await this._postToSoundtouch('/setZone',
+                '<zone master="' + this.getData().mac + '">' +
+                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
+                '</zone>');
+        } catch (e) {
+            return e;
+        }
     }
 
-    addSlave(slave) {
+    async _addSlave(slave) {
         this.log('add slave to zone', slave.getName());
-        this.postToSoundtouch('/addZoneSlave',
-            '<zone master="' + this.getData().mac + '">' +
-            '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
-            '</zone>')
+        try {
+            return await this._postToSoundtouch('/addZoneSlave',
+                '<zone master="' + this.getData().mac + '">' +
+                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
+                '</zone>');
+        } catch (e) {
+            return e;
+        }
     }
 
-    removeFromZone(slave) {
+    async _removeFromZone(slave) {
         this.log('remove from zone', slave.getName());
-        this.postToSoundtouch('/removeZoneSlave',
-            '<zone master="' + this.getData().mac + '">' +
-            '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
-            '</zone>');
+        try {
+            return await this._postToSoundtouch('/removeZoneSlave',
+                '<zone master="' + this.getData().mac + '">' +
+                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
+                '</zone>');
+        } catch (e) {
+            return e;
+        }
     }
 
-    postToSoundtouch(uri, body) {
-        Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'POST', body: body});
+    async _postToSoundtouch(uri, body) {
+            try {
+                return await Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'POST', body: body});
+            } catch (e) {
+                return(e);
+            }
     }
 
-    pollSpeakerState() {
-        const self = this;
-        Fetch('http://' + this.getSettings().ip + ':8090' + '/now_playing', {method: 'GET'})
-            .then(res => res.text())
-            .then(body => {
-                XmlParser.parseString(body, (err, result) => {
-                    if (result.nowPlaying.$.source !== 'STANDBY' && result.nowPlaying.playStatus[0] !== 'PAUSE_STATE') {
-                        if (self.getCapabilityValue('speaker_playing') === false) {
-                            self.startedPlayingTrigger.trigger(self, null).catch(e => console.log(e));
-                        }
-                        self.setCapabilityValue('speaker_playing', true);
-                    } else {
-                        if (self.getCapabilityValue('speaker_playing') === true) {
-                            self.stoppedPlayingTrigger.trigger(self, null).catch(e => console.log(e));
-                        }
-                        self.setCapabilityValue('speaker_playing', false);
+    async _pollSpeakerState() {
+        try {
+            const res = await  Fetch('http://' + this.getSettings().ip + ':8090' + '/now_playing', {method: 'GET'});
+            const body = await res.text();
+            XmlParser.parseString(body, (err, result) => {
+                const isAlreadyPlaying = this.getCapabilityValue('speaker_playing');
+                if (result.nowPlaying.$.source !== 'STANDBY' && result.nowPlaying.playStatus[0] !== 'PAUSE_STATE') {
+                    if (!isAlreadyPlaying) {
+                        this._startedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
                     }
-                });
+                    this.setCapabilityValue('speaker_playing', true);
+                } else {
+                    if (isAlreadyPlaying) {
+                        this._stoppedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
+                    }
+                    this.setCapabilityValue('speaker_playing', false);
+                }
             });
-
-        Fetch('http://' + this.getSettings().ip + ':8090' + '/volume', {method: 'GET'})
-            .then(res => res.text())
-            .then(body => {
-                XmlParser.parseString(body, (err, result) => {
-                    self.setCapabilityValue('volume_set', parseInt(result.volume.targetvolume[0]) / 100);
-                    self.setCapabilityValue('volume_mute', (result.volume.muteenabled[0] === 'true'));
-                });
+        } catch (e) {
+            return e;
+        }
+        try {
+            const res = await  Fetch('http://' + this.getSettings().ip + ':8090' + '/volume', {method: 'GET'});
+            const body = await res.text();
+            XmlParser.parseString(body, (err, result) => {
+                this.setCapabilityValue('volume_set', parseInt(result.volume.targetvolume[0]) / 100);
+                this.setCapabilityValue('volume_mute', (result.volume.muteenabled[0] === 'true'));
             });
+        } catch (e) {
+            return e;
+        }
     }
 }
 
