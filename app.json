@@ -4,8 +4,13 @@
     "name": {
         "en": "Bose Soundtouch"
     },
+    "tags": {
+      "en": ["Bose", "Soundtouch", "Speaker", "Music"],
+      "nl": ["Bose", "Soundtouch", "Luidspreker", "Muziek"]
+    },
     "description": {
-        "en": "Adds support for Bose Soundtouch devices."
+        "en": "Adds support for Bose Soundtouch devices.",
+        "nl": "Voegt ondersteuning toe voor Bose Soundtouch apparaten."
     },
     "images": {
       "large": "/assets/images/large.png",
