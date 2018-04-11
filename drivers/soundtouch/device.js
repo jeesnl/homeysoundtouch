@@ -28,16 +28,16 @@ class SoundtouchDevice extends Homey.Device {
             .register()
             .registerRunListener(async (args, state) => {
                 try {
-                    return Promise.resolve(await this._getZone());
+                    return Promise.resolve(await this._isInZone());
                 } catch (e) {
                     return Promise.reject(e);
                 }
             });
 
 
-        const _playPresetAction = new Homey.FlowCardAction('play_preset');
-        _playPresetAction.register()
-            .on('run', async (args, state) => {
+        const _playPresetAction = new Homey.FlowCardAction('play_preset')
+            .register()
+            .registerRunListener(async (args, state) => {
                 try {
                     await this._sendKeyCommand('release', 'PRESET_' + args.preset_number);
                     return Promise.resolve(true);
@@ -46,9 +46,9 @@ class SoundtouchDevice extends Homey.Device {
                 }
             });
 
-        const _setBassCapability = new Homey.FlowCardAction('bass_capability');
-        _setBassCapability.register()
-            .on('run', async (args, state) => {
+        const _setBassCapability = new Homey.FlowCardAction('bass_capability')
+            .register()
+            .registerRunListener(async (args, state) => {
                 try {
                     await this._sendBassCommand(args.bass_number);
                     return Promise.resolve(true);
@@ -57,9 +57,9 @@ class SoundtouchDevice extends Homey.Device {
                 }
             });
 
-        const _createZoneWithAction = new Homey.FlowCardAction('create_zone_with');
-        _createZoneWithAction.register()
-            .on('run', async (args, state) => {
+        const _createZoneWithAction = new Homey.FlowCardAction('create_zone_with')
+            .register()
+            .registerRunListener(async (args, state) => {
                 try {
                     await this._createZone(args.slave);
                     return Promise.resolve(true);
@@ -68,9 +68,9 @@ class SoundtouchDevice extends Homey.Device {
                 }
             });
 
-        const _addSlaveToZoneAction = new Homey.FlowCardAction('add_slave_to_zone');
-        _addSlaveToZoneAction.register()
-            .on('run', async (args, state) => {
+        const _addSlaveToZoneAction = new Homey.FlowCardAction('add_slave_to_zone')
+            .register()
+            .registerRunListener(async (args, state) => {
                 try {
                     await this._addSlave(args.slave);
                     return Promise.resolve(true);
@@ -79,9 +79,9 @@ class SoundtouchDevice extends Homey.Device {
                 }
             });
 
-        const _removeSlaveFromZoneAction = new Homey.FlowCardAction('remove_slave_from_zone');
-        _removeSlaveFromZoneAction.register()
-            .on('run', async (args, state) => {
+        const _removeSlaveFromZoneAction = new Homey.FlowCardAction('remove_slave_from_zone')
+            .register()
+            .registerRunListener(async (args, state) => {
                 try {
                     await this._removeFromZone(args.slave);
                     return Promise.resolve();
@@ -206,7 +206,7 @@ class SoundtouchDevice extends Homey.Device {
         }
     }
 
-    async _getZone() {
+    async _isInZone() {
         try {
             const res = await Fetch('http://' + this.getSettings().ip + ':8090' + '/getZone', {method: 'GET'});
             const txt = await res.text();
