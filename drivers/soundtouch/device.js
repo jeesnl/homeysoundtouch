@@ -93,7 +93,8 @@ class SoundtouchDevice extends Homey.Device {
             ['speaker_playing', this._play],
             ['speaker_prev', this._prev],
             ['speaker_next', this._next],
-            ['volume_set', this._setVolume]
+            ['volume_set', this._setVolume],
+            ['volume_mute', this._setMute],
         ]);
         this.getCapabilities().forEach(capability =>
         this.registerCapabilityListener(capability, (value) => {
@@ -135,6 +136,22 @@ class SoundtouchDevice extends Homey.Device {
     async _setVolume(volume) {
         try {
             return Promise.resolve(await this._sendVolumeCommand(volume));
+        } catch (e) {
+            return Promise.reject(e);
+        }
+    }
+
+    async _setMute(mute) {
+        try {
+            if (mute) {
+                if (!this.getCapabilityValue('volume_mute')) {
+                    return Promise.resolve(await this._sendKeyCommand('press', 'MUTE'));
+                }
+            } else {
+                if (this.getCapabilityValue('volume_mute')) {
+                    return Promise.resolve(await this._sendKeyCommand('press', 'MUTE'));
+                }
+            }
         } catch (e) {
             return Promise.reject(e);
         }
