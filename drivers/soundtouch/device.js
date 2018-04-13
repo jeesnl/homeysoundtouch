@@ -18,6 +18,9 @@ class SoundtouchDevice extends Homey.Device {
         this._stoppedPlayingTrigger = new Homey.FlowCardTriggerDevice('stopped_playing')
             .register();
 
+        this._volumeChangedTrigger = new Homey.FlowCardTriggerDevice('changed_volume')
+            .register();
+
         const _isPlayingCondition = new Homey.FlowCardCondition('is_playing')
             .register()
             .registerRunListener((args, state) => {
@@ -89,6 +92,11 @@ class SoundtouchDevice extends Homey.Device {
                     return Promise.reject(e);
                 }
             });
+
+
+        if (this.bass === undefined) {
+            this._getBassCapabilitiesAndSave();
+        }
 
         //poll playing state of speaker
         setInterval(() => {
@@ -198,9 +206,11 @@ class SoundtouchDevice extends Homey.Device {
     }
 
     async _sendBassCommand(bass) {
-        this.log('bass', bass);
+        const bassSteps = Math.abs(100 / (this.bass.min - this.bass.max));
+        const bassLevel = this.bass.min + Math.round((bass * 100) / bassSteps);
+        this.log('bass', bassLevel);
         try {
-            return await this._postToSoundtouch('/bass', '<bass>' + bass + '</bass>');
+            return await this._postToSoundtouch('/bass', '<bass>' + bassLevel + '</bass>');
         } catch (e) {
             return e;
         }
@@ -208,7 +218,7 @@ class SoundtouchDevice extends Homey.Device {
 
     async _isInZone() {
         try {
-            const res = await Fetch('http://' + this.getSettings().ip + ':8090' + '/getZone', {method: 'GET'});
+            const res = await this._getFromSoundtouch('/getZone');
             const txt = await res.text();
             const jsObj = await this._parseXML(txt);
             if (jsObj.zone !== '') {
@@ -257,6 +267,26 @@ class SoundtouchDevice extends Homey.Device {
         }
     }
 
+    async _getBassCapabilitiesAndSave() {
+        this.bass = {};
+        try {
+            const res = await this._getFromSoundtouch('/bassCapabilities');
+            const txt = await res.text();
+            const jsObj = await this._parseXML(txt);
+            if (jsObj.bassCapabilities.bassAvailable[0] === 'true') {
+                this.bass.available = true;
+                this.bass.min = parseInt(jsObj.bassCapabilities.bassMin[0]);
+                this.bass.max = parseInt(jsObj.bassCapabilities.bassMax[0]);
+            } else {
+                this.bass.available = false;
+            }
+            this.log('Bass capabilities ', this.bass);
+            return Promise.resolve();
+        } catch (e) {
+            return e;
+        }
+    }
+
     async _postToSoundtouch(uri, body) {
             try {
                 return await Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'POST', body: body});
@@ -265,9 +295,17 @@ class SoundtouchDevice extends Homey.Device {
             }
     }
 
+    async _getFromSoundtouch(uri) {
+        try {
+            return await Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'GET'});
+        } catch (e) {
+            return (e);
+        }
+    }
+
     async _pollSpeakerState() {
         try {
-            const res = await  Fetch('http://' + this.getSettings().ip + ':8090' + '/now_playing', {method: 'GET'});
+            const res = await this._getFromSoundtouch('/now_playing');
             const body = await res.text();
             const jsObj = await this._parseXML(body);
             const isAlreadyPlaying = this.getCapabilityValue('speaker_playing');
@@ -286,11 +324,19 @@ class SoundtouchDevice extends Homey.Device {
             return e;
         }
         try {
-            const res = await  Fetch('http://' + this.getSettings().ip + ':8090' + '/volume', {method: 'GET'});
+            const res = await this._getFromSoundtouch('/volume');
             const body = await res.text();
             const jsObj = await this._parseXML(body);
-            this.setCapabilityValue('volume_set', parseInt(jsObj.volume.targetvolume[0]) / 100);
-            this.setCapabilityValue('volume_mute', (jsObj.volume.muteenabled[0] === 'true'));
+            const targetVolume = parseInt(jsObj.volume.targetvolume[0]) / 100;
+            const mute = (jsObj.volume.muteenabled[0] === 'true');
+            const token = {
+                'volume': mute ? 0 : targetVolume
+            };
+            if (this.getCapabilityValue('volume_set') !== targetVolume || this.getCapabilityValue('volume_mute') !== mute) {
+                this._volumeChangedTrigger.trigger(this, token).catch(e => console.log(e));
+            }
+            this.setCapabilityValue('volume_set', targetVolume);
+            this.setCapabilityValue('volume_mute', mute);
         } catch (e) {
             return e;
         }

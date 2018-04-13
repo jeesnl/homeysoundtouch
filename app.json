@@ -27,7 +27,7 @@
       }
     },
     "category": "music",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "compatibility": ">=1.5.0",
     "author": {
         "name": "Stefan Simon",
@@ -60,6 +60,31 @@
             "name": "device",
             "type": "device",
             "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
+        "id": "changed_volume",
+        "title": {
+          "en": "Changed volume",
+          "nl": "Veranderde volume"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "volume",
+            "type": "number",
+            "title": {
+              "en": "volume",
+              "nl": "volume"
+            },
+            "example": 0.5
           }
         ]
       }
@@ -227,8 +252,8 @@
       {
         "id": "bass_capability",
         "title": {
-          "en": "Set bass reduction",
-          "nl": "Zet bass lager"
+          "en": "Set bass level",
+          "nl": "Zet bass niveau"
         },
         "fluidArgs": true,
         "args":[
@@ -239,63 +264,13 @@
           },
           {
             "name": "bass_number",
-            "type": "dropdown",
-            "values": [
-              {
-                "id": "0",
-                "label": {
-                  "en": "0"
-                }
-              },
-              {
-                "id": "-1",
-                "label": {
-                  "en": "-1"
-                }
-              },
-              {
-                "id": "-2",
-                "label": {
-                  "en": "-2"
-                }
-              },
-              {
-                "id": "-3",
-                "label": {
-                  "en": "-3"
-                }
-              },
-              {
-                "id": "-4",
-                "label": {
-                  "en": "-5"
-                }
-              },
-              {
-                "id": "-6",
-                "label": {
-                  "en": "-6"
-                }
-              },
-              {
-                "id": "-7",
-                "label": {
-                  "en": "-7"
-                }
-              },
-              {
-                "id": "-8",
-                "label": {
-                  "en": "-8"
-                }
-              },
-              {
-                "id": "-9",
-                "label": {
-                  "en": "-9"
-                }
-              }
-            ]
+            "type": "range",
+            "min": 0,
+            "max": 1,
+            "step": 0.01,
+            "label": "%",
+            "labelMultiplier": 100,
+            "labelDecimals": 0
           }
         ]
       }
