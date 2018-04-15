@@ -37,7 +37,6 @@ class SoundtouchDevice extends Homey.Device {
                 }
             });
 
-
         const _playPresetAction = new Homey.FlowCardAction('play_preset')
             .register()
             .registerRunListener(async (args, state) => {
@@ -87,6 +86,28 @@ class SoundtouchDevice extends Homey.Device {
             .registerRunListener(async (args, state) => {
                 try {
                     await this._removeFromZone(args.slave);
+                    return Promise.resolve();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
+
+        const _togglePowerAction = new Homey.FlowCardAction('toggle_power')
+            .register()
+            .registerRunListener(async (args, state) => {
+                try {
+                    await this._sendKeyCommand('press', 'POWER');
+                    return Promise.resolve();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
+
+        const _setSourceAction = new Homey.FlowCardAction('set_source')
+            .register()
+            .registerRunListener(async (args, state) => {
+                try {
+                    await this._setSource(args.source);
                     return Promise.resolve();
                 } catch (e) {
                     return Promise.reject(e);
@@ -206,6 +227,9 @@ class SoundtouchDevice extends Homey.Device {
     }
 
     async _sendBassCommand(bass) {
+        if (!this.bass.available) {
+            return Promise.reject('Bass not available');
+        }
         const bassSteps = Math.abs(100 / (this.bass.min - this.bass.max));
         const bassLevel = this.bass.min + Math.round((bass * 100) / bassSteps);
         this.log('bass', bassLevel);
@@ -262,6 +286,21 @@ class SoundtouchDevice extends Homey.Device {
                 '<zone master="' + this.getData().mac + '">' +
                 '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
                 '</zone>');
+        } catch (e) {
+            return e;
+        }
+    }
+
+    async _setSource(source) {
+        this.log('select source', source);
+        try {
+            let body = '';
+            if (source === 'aux') {
+                body = '<ContentItem source="AUX" location="" sourceAccount=""></ContentItem>';
+            } else if (source === 'bluetooth') {
+                body = '<ContentItem source="BLUETOOTH" location="" sourceAccount=""></ContentItem>';
+            }
+            return await this._postToSoundtouch('/select', body);
         } catch (e) {
             return e;
         }

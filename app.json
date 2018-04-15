@@ -273,6 +273,56 @@
             "labelDecimals": 0
           }
         ]
+      },
+      {
+        "id": "toggle_power",
+        "title": {
+          "en": "Turn on/off",
+          "nl": "Zet aan/uit"
+        },
+        "fluidArgs": true,
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
+        "id": "set_source",
+        "title": {
+          "en": "Choose source",
+          "nl": "Selecteer bron"
+        },
+        "fluidArgs": true,
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "source",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "aux",
+                "label": {
+                  "en": "AUX",
+                  "nl": "AUX"
+                }
+              },
+              {
+                "id": "bluetooth",
+                "label": {
+                  "en": "Bluetooth",
+                  "nl": "Bluetooth"
+                }
+              }
+            ]
+          }
+        ]
       }
     ]
     },
