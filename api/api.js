@@ -1,6 +1,6 @@
 const Fetch = require('node-fetch');
 const XmlParser = require('xml2js').Parser();
-const Keys = require('./keys.js');
+const Keys = require('./keys.js').keys;
 
 class SoundtouchApi {
     constructor(ip) {
