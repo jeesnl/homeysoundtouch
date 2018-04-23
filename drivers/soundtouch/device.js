@@ -3,6 +3,7 @@
 const Homey = require('homey');
 const Fetch = require('node-fetch');
 const XmlParser = require('xml2js').Parser();
+const Api = require('../../api/api.js');
 
 const POLL_INTERVAL = 5000;
 
@@ -10,6 +11,7 @@ class SoundtouchDevice extends Homey.Device {
 
     // this method is called when the Device is inited
     onInit() {
+        this._api = new Api(this.getSettings()._ip);
         this._registerCapabilities();
 
         this._startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
@@ -157,11 +159,14 @@ class SoundtouchDevice extends Homey.Device {
     }
 
     async _play(state) {
+        this.log('play', state);
         try {
             if (state === true) {
-                return Promise.resolve(await this._sendKeyCommand('press', 'PLAY'));
+                this.log('sending play');
+                return Promise.resolve(await this._api.play());
             } else {
-                return Promise.resolve(await this._sendKeyCommand('press', 'PAUSE'));
+                this.log('sending pause');
+                return Promise.resolve(await this._api.pause());
             }
         } catch (e) {
             return Promise.reject(e);
@@ -260,7 +265,7 @@ class SoundtouchDevice extends Homey.Device {
         try {
             return await this._postToSoundtouch('/setZone',
                 '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
+                '<member ipaddress="' + slave.getSettings()._ip + '">' + slave.getData().mac + '</member>' +
                 '</zone>');
         } catch (e) {
             return e;
@@ -272,7 +277,7 @@ class SoundtouchDevice extends Homey.Device {
         try {
             return await this._postToSoundtouch('/addZoneSlave',
                 '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
+                '<member ipaddress="' + slave.getSettings()._ip + '">' + slave.getData().mac + '</member>' +
                 '</zone>');
         } catch (e) {
             return e;
@@ -284,7 +289,7 @@ class SoundtouchDevice extends Homey.Device {
         try {
             return await this._postToSoundtouch('/removeZoneSlave',
                 '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
+                '<member ipaddress="' + slave.getSettings()._ip + '">' + slave.getData().mac + '</member>' +
                 '</zone>');
         } catch (e) {
             return e;
@@ -328,7 +333,7 @@ class SoundtouchDevice extends Homey.Device {
 
     async _postToSoundtouch(uri, body) {
             try {
-                return await Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'POST', body: body});
+                return await Fetch('http://' + this.getSettings()._ip + ':8090' + uri, {method: 'POST', body: body});
             } catch (e) {
                 return(e);
             }
@@ -336,7 +341,7 @@ class SoundtouchDevice extends Homey.Device {
 
     async _getFromSoundtouch(uri) {
         try {
-            return await Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'GET'});
+            return await Fetch('http://' + this.getSettings()._ip + ':8090' + uri, {method: 'GET'});
         } catch (e) {
             return (e);
         }
