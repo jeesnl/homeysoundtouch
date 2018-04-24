@@ -6,6 +6,8 @@ class SoundtouchApi {
     constructor(ip) {
         this._ip = ip;
     }
+
+    //keys
     async play() {
         return await this._pressKey(Keys.PLAY);
     }
@@ -58,6 +60,30 @@ class SoundtouchApi {
         return await this._pressKey(Keys.PRESET_6);
     };
 
+    //states
+    async isPlaying() {
+        try {
+            const res = await this._getFromSoundtouch('/now_playing');
+            const body = await res.text();
+            const jsObj = await this._parseXML(body);
+            return jsObj.nowPlaying.$.source !== 'STANDBY' && jsObj.nowPlaying.playStatus[0] !== 'PAUSE_STATE';
+        } catch (e) {
+            return Promise.reject(e);
+        }
+    }
+
+    async getVolume() {
+        const res = await this._getFromSoundtouch('/volume');
+        const body = await res.text();
+        const jsObj = await this._parseXML(body);
+        const targetVolume = parseInt(jsObj.volume.targetvolume[0]);
+        const mute = (jsObj.volume.muteenabled[0] === 'true');
+        return {
+            volume: targetVolume,
+            mute: mute
+        }
+    }
+
     async _pressKey(key) {
         const body = `<key state="${key.state}" sender="Gabbo">${key.message}</key>`;
         return await this._postToSoundtouch('/key', body);
@@ -78,9 +104,9 @@ class SoundtouchApi {
         try {
             const res = await Fetch('http://' + this._ip + ':8090' + uri, {method: 'GET'});
             if (res.status === 200) {
-                return Promise.resolve();
+                return Promise.resolve(res);
             } else {
-                return Promise.reject();
+                return Promise.reject(res);
             }
         } catch (e) {
             return (e);
