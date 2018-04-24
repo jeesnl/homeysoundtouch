@@ -7,59 +7,60 @@ class SoundtouchApi {
         this._ip = ip;
     }
     async play() {
-        await this._pressKey(Keys.PLAY);
+        return await this._pressKey(Keys.PLAY);
     }
     async pause() {
-        await this._pressKey(Keys.PAUSE);
+        return await this._pressKey(Keys.PAUSE);
     }
-    // this.prev_track = async () => {
-    //     await this._pressKey(Keys.PREV_TRACK);
-    // };
-    // this.next_track = async () => {
-    //     await this._pressKey(Keys.NEXT_TRACK);
-    // };
-    // this.power = async () => {
-    //     await this._pressKey(Keys.POWER);
-    // };
-    // this.mute = async () => {
-    //     await this._pressKey(Keys.MUTE);
-    // };
-    // this.shuffle_on = async () => {
-    //     await this._pressKey(Keys.SHUFFLE_ON);
-    // };
-    // this.shuffle_off = async () => {
-    //     await this._pressKey(Keys.SHUFFLE_OFF);
-    // };
-    // this.repeat_one = async () => {
-    //     await this._pressKey(Keys.REPEAT_ONE);
-    // };
-    // this.repeat_all = async () => {
-    //     await this._pressKey(Keys.REPEAT_ALL);
-    // };
-    // this.repeat_none = async () => {
-    //     await this._pressKey(Keys.REPEAT_NONE);
-    // };
-    // this.preset_1 = async () => {
-    //     await this._pressKey(Keys.PRESET_1);
-    // };
-    // this.preset_2 = async () => {
-    //     await this._pressKey(Keys.PRESET_2);
-    // };
-    // this.preset_3 = async () => {
-    //     await this._pressKey(Keys.PRESET_3);
-    // };
-    // this.preset_4 = async () => {
-    //     await this._pressKey(Keys.PRESET_4);
-    // };
-    // this.preset_5 = async () => {
-    //     await this._pressKey(Keys.PRESET_5);
-    // };
-    // this.preset_6 = async () => {
-    //     await this._pressKey(Keys.PRESET_6);
-    // };
+    async prev_track() {
+        return await this._pressKey(Keys.PREV_TRACK);
+    };
+    async next_track() {
+        return await this._pressKey(Keys.NEXT_TRACK);
+    };
+    async power() {
+        return await this._pressKey(Keys.POWER);
+    };
+    async mute() {
+        return await this._pressKey(Keys.MUTE);
+    };
+    async shuffle_on() {
+        return await this._pressKey(Keys.SHUFFLE_ON);
+    };
+    async shuffle_off() {
+        return await this._pressKey(Keys.SHUFFLE_OFF);
+    };
+    async repeat_one() {
+        return await this._pressKey(Keys.REPEAT_ONE);
+    };
+    async repeat_all() {
+        return await this._pressKey(Keys.REPEAT_ALL);
+    };
+    async repeat_none() {
+        return await this._pressKey(Keys.REPEAT_NONE);
+    };
+    async preset_1() {
+        return await this._pressKey(Keys.PRESET_1);
+    };
+    async preset_2() {
+        return await this._pressKey(Keys.PRESET_2);
+    };
+    async preset_3() {
+        return await this._pressKey(Keys.PRESET_3);
+    };
+    async preset_4() {
+        return await this._pressKey(Keys.PRESET_4);
+    };
+    async preset_5() {
+        return await this._pressKey(Keys.PRESET_5);
+    };
+    async preset_6() {
+        return await this._pressKey(Keys.PRESET_6);
+    };
+
     async _pressKey(key) {
         const body = `<key state="${key.state}" sender="Gabbo">${key.message}</key>`;
-        await this._postToSoundtouch('/key', body);
+        return await this._postToSoundtouch('/key', body);
     }
     async _postToSoundtouch(uri, body) {
         try {
@@ -75,7 +76,12 @@ class SoundtouchApi {
     };
     async _getFromSoundtouch(uri) {
         try {
-            return await Fetch('http://' + this._ip + ':8090' + uri, {method: 'GET'});
+            const res = await Fetch('http://' + this._ip + ':8090' + uri, {method: 'GET'});
+            if (res.status === 200) {
+                return Promise.resolve();
+            } else {
+                return Promise.reject();
+            }
         } catch (e) {
             return (e);
         }
@@ -91,6 +97,6 @@ class SoundtouchApi {
             });
         });
     }
-};
+}
 
 module.exports = SoundtouchApi;

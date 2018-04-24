@@ -43,8 +43,14 @@ class SoundtouchDevice extends Homey.Device {
             .register()
             .registerRunListener(async (args, state) => {
                 try {
-                    await this._sendKeyCommand('release', 'PRESET_' + args.preset_number);
-                    return Promise.resolve(true);
+                    switch (parseInt(args.preset_number)) {
+                        case 1: return Promise.resolve(await this._api.preset_1());
+                        case 2: return Promise.resolve(await this._api.preset_2());
+                        case 3: return Promise.resolve(await this._api.preset_3());
+                        case 4: return Promise.resolve(await this._api.preset_4());
+                        case 5: return Promise.resolve(await this._api.preset_5());
+                        case 6: return Promise.resolve(await this._api.preset_6());
+                    }
                 } catch (e) {
                     return Promise.reject(e);
                 }
@@ -98,8 +104,7 @@ class SoundtouchDevice extends Homey.Device {
             .register()
             .registerRunListener(async (args, state) => {
                 try {
-                    await this._sendKeyCommand('press', 'POWER');
-                    return Promise.resolve();
+                    return Promise.resolve(await this._api.power());
                 } catch (e) {
                     return Promise.reject(e);
                 }
@@ -175,7 +180,7 @@ class SoundtouchDevice extends Homey.Device {
 
     async _prev(state) {
         try {
-            return Promise.resolve(await this._sendKeyCommand('press', 'PREV_TRACK'));
+            return Promise.resolve(await this._api.prev_track());
         } catch (e) {
             return Promise.reject(e);
         }
@@ -183,7 +188,7 @@ class SoundtouchDevice extends Homey.Device {
 
     async _next(state) {
         try {
-            return Promise.resolve(await this._sendKeyCommand('press', 'NEXT_TRACK'));
+            return Promise.resolve(await this._api.next_track());
         } catch (e) {
             return Promise.reject(e);
         }
@@ -201,24 +206,15 @@ class SoundtouchDevice extends Homey.Device {
         try {
             if (mute) {
                 if (!this.getCapabilityValue('volume_mute')) {
-                    return Promise.resolve(await this._sendKeyCommand('press', 'MUTE'));
+                    return Promise.resolve(await this._api.mute());
                 }
             } else {
                 if (this.getCapabilityValue('volume_mute')) {
-                    return Promise.resolve(await this._sendKeyCommand('press', 'MUTE'));
+                    return Promise.resolve(await this._api.mute());
                 }
             }
         } catch (e) {
             return Promise.reject(e);
-        }
-    }
-
-    async _sendKeyCommand(state, value) {
-        this.log(value, state);
-        try {
-            return await this._postToSoundtouch('/key', '<key state="' + state + '" sender="Gabbo">' + value + '</key>');
-        } catch (e) {
-            return e;
         }
     }
 
