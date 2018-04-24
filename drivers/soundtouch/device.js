@@ -345,37 +345,30 @@ class SoundtouchDevice extends Homey.Device {
 
     async _pollSpeakerState() {
         try {
-            const res = await this._getFromSoundtouch('/now_playing');
-            const body = await res.text();
-            const jsObj = await this._parseXML(body);
-            const isAlreadyPlaying = this.getCapabilityValue('speaker_playing');
-            if (jsObj.nowPlaying.$.source !== 'STANDBY' && jsObj.nowPlaying.playStatus[0] !== 'PAUSE_STATE') {
-                if (!isAlreadyPlaying) {
-                    this._startedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
-                }
-                this.setCapabilityValue('speaker_playing', true);
-            } else {
-                if (isAlreadyPlaying) {
-                    this._stoppedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
-                }
-                this.setCapabilityValue('speaker_playing', false);
+            const wasPlaying = this.getCapabilityValue('speaker_playing');
+            const isPlaying = await this._api.isPlaying();
+            this.setCapabilityValue('speaker_playing', isPlaying);
+            if (wasPlaying === false && isPlaying === true) {
+                this._startedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
+            }
+            if (wasPlaying === true && isPlaying === false) {
+                this._stoppedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
             }
         } catch (e) {
             return e;
         }
         try {
-            const res = await this._getFromSoundtouch('/volume');
-            const body = await res.text();
-            const jsObj = await this._parseXML(body);
-            const targetVolume = parseInt(jsObj.volume.targetvolume[0]) / 100;
-            const mute = (jsObj.volume.muteenabled[0] === 'true');
+            const volumeData = await this._api.getVolume();
+            const volume = volumeData.volume / 100;
+            const mute = volumeData.mute;
             const token = {
-                'volume': mute ? 0 : targetVolume
+                'volume': mute ? 0 : volume
             };
-            if (this.getCapabilityValue('volume_set') !== targetVolume || this.getCapabilityValue('volume_mute') !== mute) {
+            if (this.getCapabilityValue('volume_set') !== volume ||
+                    this.getCapabilityValue('volume_mute') !== mute) {
                 this._volumeChangedTrigger.trigger(this, token).catch(e => console.log(e));
             }
-            this.setCapabilityValue('volume_set', targetVolume);
+            this.setCapabilityValue('volume_set', volume);
             this.setCapabilityValue('volume_mute', mute);
         } catch (e) {
             return e;
