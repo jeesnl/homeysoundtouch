@@ -3,7 +3,7 @@
 const Homey = require('homey');
 const Fetch = require('node-fetch');
 const XmlParser = require('xml2js').Parser();
-const Api = require('../../api/api.js');
+const SoundtouchApi = require('../../api/api.js');
 
 const POLL_INTERVAL = 5000;
 
@@ -11,7 +11,7 @@ class SoundtouchDevice extends Homey.Device {
 
     // this method is called when the Device is inited
     onInit() {
-        this._api = new Api(this.getSettings()._ip);
+        this._api = new SoundtouchApi(this.getSettings().ip);
         this._registerCapabilities();
 
         this._startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')

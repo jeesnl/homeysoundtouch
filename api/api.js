@@ -58,13 +58,17 @@ class SoundtouchApi {
     //     await this._pressKey(Keys.PRESET_6);
     // };
     async _pressKey(key) {
-        console.log('apipressKey', key);
-        const body = `<key state="${key.state}" sender="gabbo">${key.message}</key>`;
+        const body = `<key state="${key.state}" sender="Gabbo">${key.message}</key>`;
         await this._postToSoundtouch('/key', body);
     }
     async _postToSoundtouch(uri, body) {
         try {
-            return await Fetch('http://' + this._ip + ':8090' + uri, {method: 'POST', body: body});
+            const res = await Fetch('http://' + this._ip + ':8090' + uri, {method: 'POST', body: body});
+            if (res.status === 200) {
+                return Promise.resolve();
+            } else {
+                return Promise.reject();
+            }
         } catch (e) {
             return(e);
         }
