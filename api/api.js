@@ -2,7 +2,7 @@ const Fetch = require('node-fetch');
 const XmlParser = require('xml2js').Parser();
 const Keys = require('./keys.js').keys;
 
-class SoundtouchApi {
+module.exports = class SoundtouchApi {
     constructor(ip, mac) {
         this._ip = ip;
         this._mac = mac;
@@ -72,8 +72,8 @@ class SoundtouchApi {
     async repeat_one() {
         return await this._pressKey(Keys.REPEAT_ONE);
     };
-    async repeat_all() {
-        return await this._pressKey(Keys.REPEAT_ALL);
+    async repeat_off() {
+        return await this._pressKey(Keys.REPEAT_OFF);
     };
     async repeat_none() {
         return await this._pressKey(Keys.REPEAT_NONE);
@@ -122,25 +122,40 @@ class SoundtouchApi {
 
     //zones
     async createZone(slaveIp, slaveMac) {
-        await this._postToSoundtouch('/setZone', `
-            <zone master="${this._mac}">
-                <member ipaddress="${slaveIp}">${slaveMac}</member>
-            </zone>
-        `)
+        if (this._ip !== slaveIp && this._mac !== slaveMac) {
+            await this._postToSoundtouch('/setZone', `
+                <zone master="${this._mac}">
+                    <member ipaddress="${slaveIp}">${slaveMac}</member>
+                </zone>
+            `);
+            return Promise.resolve();
+        } else {
+            return Promise.reject();
+        }
     }
     async addSlaveToZone(slaveIp, slaveMac) {
-        await this._postToSoundtouch('/addZoneSlave', `
-            <zone master="${this._mac}">
-                <member ipaddress="${slaveIp}">${slaveMac}</member>
-            </zone>
-        `);
+        if (this._ip !== slaveIp && this._mac !== slaveMac) {
+            await this._postToSoundtouch('/addZoneSlave', `
+                <zone master="${this._mac}">
+                    <member ipaddress="${slaveIp}">${slaveMac}</member>
+                </zone>
+            `);
+            return Promise.resolve();
+        } else {
+            return Promise.reject();
+        }
     }
     async removeFromZone(slaveIp, slaveMac) {
-        await this._postToSoundtouch('/removeZoneSlave', `
-            <zone master="${this._mac}">
-                <member ipaddress="${slaveIp}">${slaveMac}</member>
-            </zone>
-        `);
+        if (this._ip !== slaveIp && this._mac !== slaveMac) {
+            await this._postToSoundtouch('/removeZoneSlave', `
+                <zone master="${this._mac}">
+                    <member ipaddress="${slaveIp}">${slaveMac}</member>
+                </zone>
+            `);
+            return Promise.resolve();
+        } else {
+            return Promise.reject();
+        }
     }
 
     //states
@@ -168,11 +183,20 @@ class SoundtouchApi {
         const res = await this._getFromSoundtouch('/getZone');
         const txt = await res.text();
         const jsObj = await this._parseXML(txt);
+        return jsObj.zone !== '';
+    }
+    async isZoneMaster() {
+        const res = await this._getFromSoundtouch('/getZone');
+        const txt = await res.text();
+        const jsObj = await this._parseXML(txt);
         if (jsObj.zone !== '') {
-            return true;
-        } else {
-            return false;
+            console.log('my mac: ' + this._mac);
+            console.log('master mac: ' + jsObj.zone.$.master);
+            if (jsObj.zone.$.master === this._mac) {
+                return true;
+            }
         }
+        return false;
     }
     async getVolume() {
         const res = await this._getFromSoundtouch('/volume');
@@ -225,6 +249,4 @@ class SoundtouchApi {
             });
         });
     }
-}
-
-module.exports = SoundtouchApi;
+};

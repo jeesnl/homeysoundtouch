@@ -40,8 +40,8 @@ module.exports = {
             message: "REPEAT_ALL",
             state: "press"
         },
-        REPEAT_NONE: {
-            MESSAGE: "REPEAT_NONE",
+        REPEAT_OFF: {
+            MESSAGE: "REPEAT_OFF",
             state: "press"
         },
         PRESET_1: {
