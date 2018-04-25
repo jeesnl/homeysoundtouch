@@ -11,7 +11,7 @@ class SoundtouchDevice extends Homey.Device {
 
     // this method is called when the Device is inited
     onInit() {
-        this._api = new SoundtouchApi(this.getSettings().ip);
+        this._api = new SoundtouchApi(this.getSettings().ip, this.getData().mac);
         this._registerCapabilities();
 
         this._startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
@@ -43,7 +43,7 @@ class SoundtouchDevice extends Homey.Device {
             .register()
             .registerRunListener(async (args, state) => {
                 try {
-                    return Promise.resolve(await this._isInZone());
+                    return Promise.resolve(await this._api.isInZone());
                 } catch (e) {
                     return Promise.reject(e);
                 }
@@ -196,6 +196,7 @@ class SoundtouchDevice extends Homey.Device {
     // this method is called when a user changes settings
     onSettings(oldSettings, newSettings, changedKeys) {
         this._api.setIp(newSettings(ip));
+
     }
 
     _registerCapabilities() {
@@ -288,28 +289,10 @@ class SoundtouchDevice extends Homey.Device {
         }
     }
 
-    async _isInZone() {
-        try {
-            const res = await this._getFromSoundtouch('/getZone');
-            const txt = await res.text();
-            const jsObj = await this._parseXML(txt);
-            if (jsObj.zone !== '') {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (e) {
-            reject(e);
-        }
-    }
-
     async _createZone(slave) {
         this.log('create zone with', slave.getName());
         try {
-            return await this._postToSoundtouch('/setZone',
-                '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings()._ip + '">' + slave.getData().mac + '</member>' +
-                '</zone>');
+            return await this._api.createZone(slave.getSettings().ip, slave.getData().mac);
         } catch (e) {
             return e;
         }
@@ -318,10 +301,7 @@ class SoundtouchDevice extends Homey.Device {
     async _addSlave(slave) {
         this.log('add slave to zone', slave.getName());
         try {
-            return await this._postToSoundtouch('/addZoneSlave',
-                '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings()._ip + '">' + slave.getData().mac + '</member>' +
-                '</zone>');
+            return await this._api.addSlaveToZone(slave.getSettings().ip, slave.getData().mac);
         } catch (e) {
             return e;
         }
@@ -330,10 +310,7 @@ class SoundtouchDevice extends Homey.Device {
     async _removeFromZone(slave) {
         this.log('remove from zone', slave.getName());
         try {
-            return await this._postToSoundtouch('/removeZoneSlave',
-                '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings()._ip + '">' + slave.getData().mac + '</member>' +
-                '</zone>');
+            return await this._api.removeFromZone(slave.getSettings().ip, slave.getData().mac);
         } catch (e) {
             return e;
         }
@@ -342,13 +319,7 @@ class SoundtouchDevice extends Homey.Device {
     async _setSource(source) {
         this.log('select source', source);
         try {
-            let body = '';
-            if (source === 'aux') {
-                body = '<ContentItem source="AUX" location="" sourceAccount=""></ContentItem>';
-            } else if (source === 'bluetooth') {
-                body = '<ContentItem source="BLUETOOTH" location="" sourceAccount=""></ContentItem>';
-            }
-            return await this._postToSoundtouch('/select', body);
+            this._api.setSource(source);
         } catch (e) {
             return e;
         }

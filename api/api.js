@@ -3,12 +3,16 @@ const XmlParser = require('xml2js').Parser();
 const Keys = require('./keys.js').keys;
 
 class SoundtouchApi {
-    constructor(ip) {
+    constructor(ip, mac) {
         this._ip = ip;
+        this._mac = mac;
     }
     //api settings
     setIp(ip) {
         this._ip = ip;
+    }
+    setMac(mac) {
+        this._mac = mac;
     }
 
     //config
@@ -105,6 +109,39 @@ class SoundtouchApi {
             await this._postToSoundtouch('/bass', `<bass>${bassLevel}</bass>`);
         }
     }
+    async setSource(source) {
+        const sourceText = source.toUpperCase();
+        let body = ``;
+        if (sourceText === 'AUX') {
+            body = `<ContentItem source="${sourceText}" sourceAccount="${sourceText}"></ContentItem>`;
+        } else {
+            body = `<ContentItem source="${sourceText}"></ContentItem>`
+        }
+        await this._postToSoundtouch('/select', body);
+    }
+
+    //zones
+    async createZone(slaveIp, slaveMac) {
+        await this._postToSoundtouch('/setZone', `
+            <zone master="${this._mac}">
+                <member ipaddress="${slaveIp}">${slaveMac}</member>
+            </zone>
+        `)
+    }
+    async addSlaveToZone(slaveIp, slaveMac) {
+        await this._postToSoundtouch('/addZoneSlave', `
+            <zone master="${this._mac}">
+                <member ipaddress="${slaveIp}">${slaveMac}</member>
+            </zone>
+        `);
+    }
+    async removeFromZone(slaveIp, slaveMac) {
+        await this._postToSoundtouch('/removeZoneSlave', `
+            <zone master="${this._mac}">
+                <member ipaddress="${slaveIp}">${slaveMac}</member>
+            </zone>
+        `);
+    }
 
     //states
     async isOn() {
@@ -125,6 +162,16 @@ class SoundtouchApi {
             return jsObj.nowPlaying.$.source !== 'STANDBY' && jsObj.nowPlaying.playStatus[0] !== 'PAUSE_STATE';
         } catch (e) {
             return Promise.reject(e);
+        }
+    }
+    async isInZone() {
+        const res = await this._getFromSoundtouch('/getZone');
+        const txt = await res.text();
+        const jsObj = await this._parseXML(txt);
+        if (jsObj.zone !== '') {
+            return true;
+        } else {
+            return false;
         }
     }
     async getVolume() {
