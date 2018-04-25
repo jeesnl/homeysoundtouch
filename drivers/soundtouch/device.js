@@ -1,8 +1,7 @@
 'use strict';
 
 const Homey = require('homey');
-const Fetch = require('node-fetch');
-const XmlParser = require('xml2js').Parser();
+const SoundtouchApi = require("../../api/api.js");
 
 const POLL_INTERVAL = 5000;
 
@@ -10,6 +9,12 @@ class SoundtouchDevice extends Homey.Device {
 
     // this method is called when the Device is inited
     onInit() {
+        if (this.getData().mac !== '' && (this.getSettings().mac === undefined || this.getSettings().mac === '')) {
+            this.setSettings({
+                mac: this.getData().mac
+            });
+        }
+        this._api = new SoundtouchApi(this.getSettings().ip, this.getSettings().mac);
         this._registerCapabilities();
 
         this._startedPlayingTrigger = new Homey.FlowCardTriggerDevice('started_playing')
@@ -18,29 +23,58 @@ class SoundtouchDevice extends Homey.Device {
         this._stoppedPlayingTrigger = new Homey.FlowCardTriggerDevice('stopped_playing')
             .register();
 
+        this._volumeChangedTrigger = new Homey.FlowCardTriggerDevice('changed_volume')
+            .register();
+
+        const _isTurnedOnCondition = new Homey.FlowCardCondition('is_on')
+            .register()
+            .registerRunListener(async (args, state) => {
+                try {
+                    return Promise.resolve(await args.device._api.isOn());
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
+
         const _isPlayingCondition = new Homey.FlowCardCondition('is_playing')
             .register()
             .registerRunListener((args, state) => {
-                return Promise.resolve(this.getCapabilityValue('speaker_playing', true));
+                return Promise.resolve(this.getCapabilityValue('speaker_playing'));
             });
 
         const _isInZoneCondition = new Homey.FlowCardCondition('is_in_zone')
             .register()
             .registerRunListener(async (args, state) => {
                 try {
-                    return Promise.resolve(await this._isInZone());
+                    return Promise.resolve(await args.device._api.isInZone());
                 } catch (e) {
                     return Promise.reject(e);
                 }
             });
 
+        const _isMasterInZoneCondition = new Homey.FlowCardCondition('is_zone_master')
+            .register()
+            .registerRunListener(async (args, state) => {
+                try {
+                    return Promise.resolve(await args.device._api.isZoneMaster());
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
 
         const _playPresetAction = new Homey.FlowCardAction('play_preset')
             .register()
             .registerRunListener(async (args, state) => {
+                this.log('preset', args.device);
                 try {
-                    await this._sendKeyCommand('release', 'PRESET_' + args.preset_number);
-                    return Promise.resolve(true);
+                    switch (parseInt(args.preset_number)) {
+                        case 1: return Promise.resolve(await args.device._api.preset_1());
+                        case 2: return Promise.resolve(await args.device._api.preset_2());
+                        case 3: return Promise.resolve(await args.device._api.preset_3());
+                        case 4: return Promise.resolve(await args.device._api.preset_4());
+                        case 5: return Promise.resolve(await args.device._api.preset_5());
+                        case 6: return Promise.resolve(await args.device._api.preset_6());
+                    }
                 } catch (e) {
                     return Promise.reject(e);
                 }
@@ -49,8 +83,9 @@ class SoundtouchDevice extends Homey.Device {
         const _setBassCapability = new Homey.FlowCardAction('bass_capability')
             .register()
             .registerRunListener(async (args, state) => {
+                this.log('bass', args);
                 try {
-                    await this._sendBassCommand(args.bass_number);
+                    await args.device._api.setBassPercentage(args.bass_number * 100);
                     return Promise.resolve(true);
                 } catch (e) {
                     return Promise.reject(e);
@@ -60,8 +95,9 @@ class SoundtouchDevice extends Homey.Device {
         const _createZoneWithAction = new Homey.FlowCardAction('create_zone_with')
             .register()
             .registerRunListener(async (args, state) => {
+                this.log('create zone', args);
                 try {
-                    await this._createZone(args.slave);
+                    await args.device._api.createZone(args.slave.getSettings().ip, args.slave.getSettings().mac);
                     return Promise.resolve(true);
                 } catch (e) {
                     return promise.reject(e);
@@ -71,8 +107,9 @@ class SoundtouchDevice extends Homey.Device {
         const _addSlaveToZoneAction = new Homey.FlowCardAction('add_slave_to_zone')
             .register()
             .registerRunListener(async (args, state) => {
+                this.log('add slave', args);
                 try {
-                    await this._addSlave(args.slave);
+                    await args.device._api.addSlaveToZone(args.slave.getSettings().ip, args.slave.getSettings().mac);
                     return Promise.resolve(true);
                 } catch (e) {
                     return Promise.reject(e);
@@ -82,9 +119,77 @@ class SoundtouchDevice extends Homey.Device {
         const _removeSlaveFromZoneAction = new Homey.FlowCardAction('remove_slave_from_zone')
             .register()
             .registerRunListener(async (args, state) => {
+                this.log('remove slave', args);
                 try {
-                    await this._removeFromZone(args.slave);
+                    await args.device._api.removeFromZone(args.slave.getSettings().ip, args.slave.getSettings().mac);
                     return Promise.resolve();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
+
+        const _togglePowerAction = new Homey.FlowCardAction('power')
+            .register()
+            .registerRunListener(async (args, state) => {
+                this.log('power', args);
+                try {
+                    const turnedOn = await args.device._api.isOn();
+                    switch (args.power_onoff) {
+                        case 'power_on': {
+                            if (!turnedOn) {
+                                return Promise.resolve(await args.device._api.power());
+                            }
+                            break;
+                        }
+                        case 'power_off': {
+                            if (turnedOn) {
+                                return Promise.resolve(await args.device._api.power());
+                            }
+                            break;
+                        }
+                    }
+                    return Promise.resolve();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
+
+        const _setSourceAction = new Homey.FlowCardAction('set_source')
+            .register()
+            .registerRunListener(async (args, state) => {
+                this.log('select', args);
+                try {
+                    args.device._api.setSource(args.source);
+                    return Promise.resolve();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
+
+        const _setShuffleAction = new Homey.FlowCardAction('shuffle')
+            .register()
+            .registerRunListener(async (args, state) => {
+                this.log('shuffle', args);
+                try {
+                    switch (args.shuffle) {
+                        case 'shuffle_on': return Promise.resolve(await args.device._api.shuffle_on());
+                        case 'shuffle_off': return Promise.resolve(await args.device._api.shuffle_off());
+                    }
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
+
+        const _setRepeatAction = new Homey.FlowCardAction('repeat')
+            .register()
+            .registerRunListener(async (args, state) => {
+                this.log('repeat', args);
+                try {
+                    switch (args.repeat) {
+                        case 'repeat_none': return Promise.resolve(await args.device._api.repeat_none());
+                        case 'repeat_one': return Promise.resolve(await args.device._api.repeat_one());
+                        case 'repeat_off': return Promise.resolve(await args.device._api.repeat_off());
+                    }
                 } catch (e) {
                     return Promise.reject(e);
                 }
@@ -110,6 +215,12 @@ class SoundtouchDevice extends Homey.Device {
         this.log('device deleted');
     }
 
+    // this method is called when a user changes settings
+    onSettings(oldSettings, newSettings, changedKeys) {
+        this._api.setIp(newSettings(ip));
+        this._api.setMac(newSettings(mac));
+    }
+
     _registerCapabilities() {
         const capabilitySetMap = new Map([
             ['speaker_playing', this._play],
@@ -128,11 +239,12 @@ class SoundtouchDevice extends Homey.Device {
     }
 
     async _play(state) {
+        this.log('play', state);
         try {
             if (state === true) {
-                return Promise.resolve(await this._sendKeyCommand('press', 'PLAY'));
+                return Promise.resolve(await this._api.play());
             } else {
-                return Promise.resolve(await this._sendKeyCommand('press', 'PAUSE'));
+                return Promise.resolve(await this._api.pause());
             }
         } catch (e) {
             return Promise.reject(e);
@@ -140,38 +252,42 @@ class SoundtouchDevice extends Homey.Device {
     }
 
     async _prev(state) {
+        this.log('prev', state);
         try {
-            return Promise.resolve(await this._sendKeyCommand('press', 'PREV_TRACK'));
+            return Promise.resolve(await this._api.prev_track());
         } catch (e) {
             return Promise.reject(e);
         }
     }
 
     async _next(state) {
+        this.log('next', state);
         try {
-            return Promise.resolve(await this._sendKeyCommand('press', 'NEXT_TRACK'));
+            return Promise.resolve(await this._api.next_track());
         } catch (e) {
             return Promise.reject(e);
         }
     }
 
     async _setVolume(volume) {
+        this.log('volume', volume);
         try {
-            return Promise.resolve(await this._sendVolumeCommand(volume));
+            return Promise.resolve(await this._api.setVolume(volume * 100));
         } catch (e) {
             return Promise.reject(e);
         }
     }
 
     async _setMute(mute) {
+        this.log('mute', mute);
         try {
             if (mute) {
                 if (!this.getCapabilityValue('volume_mute')) {
-                    return Promise.resolve(await this._sendKeyCommand('press', 'MUTE'));
+                    return Promise.resolve(await this._api.mute());
                 }
             } else {
                 if (this.getCapabilityValue('volume_mute')) {
-                    return Promise.resolve(await this._sendKeyCommand('press', 'MUTE'));
+                    return Promise.resolve(await this._api.mute());
                 }
             }
         } catch (e) {
@@ -179,133 +295,36 @@ class SoundtouchDevice extends Homey.Device {
         }
     }
 
-    async _sendKeyCommand(state, value) {
-        this.log(value, state);
-        try {
-            return await this._postToSoundtouch('/key', '<key state="' + state + '" sender="Gabbo">' + value + '</key>');
-        } catch (e) {
-            return e;
-        }
-    }
-
-    async _sendVolumeCommand(volume) {
-        this.log('volume', volume);
-        try {
-            return await this._postToSoundtouch('/volume', '<volume>' + volume * 100 + '</volume>');
-        } catch (e) {
-            return e;
-        }
-    }
-
-    async _sendBassCommand(bass) {
-        this.log('bass', bass);
-        try {
-            return await this._postToSoundtouch('/bass', '<bass>' + bass + '</bass>');
-        } catch (e) {
-            return e;
-        }
-    }
-
-    async _isInZone() {
-        try {
-            const res = await Fetch('http://' + this.getSettings().ip + ':8090' + '/getZone', {method: 'GET'});
-            const txt = await res.text();
-            const jsObj = await this._parseXML(txt);
-            if (jsObj.zone !== '') {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (e) {
-            reject(e);
-        }
-    }
-
-    async _createZone(slave) {
-        this.log('create zone with', slave.getName());
-        try {
-            return await this._postToSoundtouch('/setZone',
-                '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
-                '</zone>');
-        } catch (e) {
-            return e;
-        }
-    }
-
-    async _addSlave(slave) {
-        this.log('add slave to zone', slave.getName());
-        try {
-            return await this._postToSoundtouch('/addZoneSlave',
-                '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
-                '</zone>');
-        } catch (e) {
-            return e;
-        }
-    }
-
-    async _removeFromZone(slave) {
-        this.log('remove from zone', slave.getName());
-        try {
-            return await this._postToSoundtouch('/removeZoneSlave',
-                '<zone master="' + this.getData().mac + '">' +
-                '<member ipaddress="' + slave.getSettings().ip + '">' + slave.getData().mac + '</member>' +
-                '</zone>');
-        } catch (e) {
-            return e;
-        }
-    }
-
-    async _postToSoundtouch(uri, body) {
-            try {
-                return await Fetch('http://' + this.getSettings().ip + ':8090' + uri, {method: 'POST', body: body});
-            } catch (e) {
-                return(e);
-            }
-    }
-
     async _pollSpeakerState() {
         try {
-            const res = await  Fetch('http://' + this.getSettings().ip + ':8090' + '/now_playing', {method: 'GET'});
-            const body = await res.text();
-            const jsObj = await this._parseXML(body);
-            const isAlreadyPlaying = this.getCapabilityValue('speaker_playing');
-            if (jsObj.nowPlaying.$.source !== 'STANDBY' && jsObj.nowPlaying.playStatus[0] !== 'PAUSE_STATE') {
-                if (!isAlreadyPlaying) {
-                    this._startedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
-                }
-                this.setCapabilityValue('speaker_playing', true);
-            } else {
-                if (isAlreadyPlaying) {
-                    this._stoppedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
-                }
-                this.setCapabilityValue('speaker_playing', false);
+            const wasPlaying = this.getCapabilityValue('speaker_playing');
+            const isPlaying = await this._api.isPlaying();
+            this.setCapabilityValue('speaker_playing', isPlaying);
+            if (wasPlaying === false && isPlaying === true) {
+                this._startedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
+            }
+            if (wasPlaying === true && isPlaying === false) {
+                this._stoppedPlayingTrigger.trigger(this, null).catch(e => console.log(e));
             }
         } catch (e) {
             return e;
         }
         try {
-            const res = await  Fetch('http://' + this.getSettings().ip + ':8090' + '/volume', {method: 'GET'});
-            const body = await res.text();
-            const jsObj = await this._parseXML(body);
-            this.setCapabilityValue('volume_set', parseInt(jsObj.volume.targetvolume[0]) / 100);
-            this.setCapabilityValue('volume_mute', (jsObj.volume.muteenabled[0] === 'true'));
+            const volumeData = await this._api.getVolume();
+            const volume = volumeData.volume / 100;
+            const mute = volumeData.mute;
+            const token = {
+                'volume': mute ? 0 : volume
+            };
+            if (this.getCapabilityValue('volume_set') !== volume ||
+                    this.getCapabilityValue('volume_mute') !== mute) {
+                this._volumeChangedTrigger.trigger(this, token).catch(e => console.log(e));
+            }
+            this.setCapabilityValue('volume_set', volume);
+            this.setCapabilityValue('volume_mute', mute);
         } catch (e) {
             return e;
         }
-    }
-
-    async _parseXML(xml) {
-        return new Promise((resolve, reject) => {
-            XmlParser.parseString(xml, (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
-            });
-        });
     }
 }
 

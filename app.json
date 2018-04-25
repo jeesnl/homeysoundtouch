@@ -27,7 +27,7 @@
       }
     },
     "category": "music",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "compatibility": ">=1.5.0",
     "author": {
         "name": "Stefan Simon",
@@ -62,6 +62,31 @@
             "filter": "driver_id=soundtouch"
           }
         ]
+      },
+      {
+        "id": "changed_volume",
+        "title": {
+          "en": "Changed volume",
+          "nl": "Veranderde volume"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "volume",
+            "type": "number",
+            "title": {
+              "en": "volume",
+              "nl": "volume"
+            },
+            "example": 0.5
+          }
+        ]
       }
     ],
     "conditions": [
@@ -80,10 +105,38 @@
         ]
       },
       {
+        "id": "is_on",
+        "title": {
+          "en": "Is !{{on|off}}",
+          "nl": "Is !{{aan|uit}}"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
         "id": "is_in_zone",
         "title": {
           "en": "!{{Is|Isn't}} in a zone",
           "nl": "Is !{{|niet}} in een zone"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
+        "id": "is_zone_master",
+        "title": {
+          "en": "!{{Is|Isn't}} master of a zone",
+          "nl": "Is !{{|geen}} meester over een zone"
         },
         "args": [
           {
@@ -227,8 +280,8 @@
       {
         "id": "bass_capability",
         "title": {
-          "en": "Set bass reduction",
-          "nl": "Zet bass lager"
+          "en": "Set bass level",
+          "nl": "Zet bass niveau"
         },
         "fluidArgs": true,
         "args":[
@@ -239,60 +292,157 @@
           },
           {
             "name": "bass_number",
+            "type": "range",
+            "min": 0,
+            "max": 1,
+            "step": 0.01,
+            "label": "%",
+            "labelMultiplier": 100,
+            "labelDecimals": 0
+          }
+        ]
+      },
+      {
+        "id": "power",
+        "title": {
+          "en": "Turn",
+          "nl": "Zet"
+        },
+        "fluidArgs": true,
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "power_onoff",
             "type": "dropdown",
             "values": [
               {
-                "id": "0",
+                "id": "power_on",
                 "label": {
-                  "en": "0"
+                  "en": "On",
+                  "nl": "Aan"
                 }
               },
               {
-                "id": "-1",
+                "id": "power_off",
                 "label": {
-                  "en": "-1"
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_source",
+        "title": {
+          "en": "Choose source",
+          "nl": "Selecteer bron"
+        },
+        "fluidArgs": true,
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "source",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "aux",
+                "label": {
+                  "en": "AUX",
+                  "nl": "AUX"
                 }
               },
               {
-                "id": "-2",
+                "id": "bluetooth",
                 "label": {
-                  "en": "-2"
+                  "en": "Bluetooth",
+                  "nl": "Bluetooth"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "shuffle",
+        "title": {
+          "en": "Shuffle",
+          "nl": "Willekeurig"
+        },
+        "fluidArgs": true,
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "shuffle",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "shuffle_on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
                 }
               },
               {
-                "id": "-3",
+                "id": "shuffle_off",
                 "label": {
-                  "en": "-3"
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "repeat",
+        "title": {
+          "en": "Repeat",
+          "nl": "Herhaal"
+        },
+        "fluidArgs": true,
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "repeat",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "repeat_off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit"
                 }
               },
               {
-                "id": "-4",
+                "id": "repeat_one",
                 "label": {
-                  "en": "-5"
+                  "en": "One",
+                  "nl": "Een"
                 }
               },
               {
-                "id": "-6",
+                "id": "repeat_all",
                 "label": {
-                  "en": "-6"
-                }
-              },
-              {
-                "id": "-7",
-                "label": {
-                  "en": "-7"
-                }
-              },
-              {
-                "id": "-8",
-                "label": {
-                  "en": "-8"
-                }
-              },
-              {
-                "id": "-9",
-                "label": {
-                  "en": "-9"
+                  "en": "All",
+                  "nl": "Alles"
                 }
               }
             ]
@@ -340,6 +490,19 @@
                                 "en": "To make sure Homey stays connected, give your Bose Soundtouch devices static Ip addresses.",
                                 "nl": "Om er zeker van te zijn dat Homey verbonden blijft, geef het Bose apparaat een statisch Ip adres."
                             }
+                        },
+                        {
+                          "id": "mac",
+                          "type": "text",
+                          "label": {
+                            "en": "Mac address",
+                            "nl": "Mac adres"
+                          },
+                          "value": "",
+                          "hint": {
+                            "en": "Do not make changes to these settings unless you are absolutely certain you know what you are doing.",
+                            "nl": "Wijzig het mac adres niet tenzij je absoluut zeker weet dat je weet wat je aan het doen bent."
+                          }
                         }
                     ]
                 }

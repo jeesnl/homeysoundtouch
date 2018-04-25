@@ -5,24 +5,27 @@
         const ip = $('#ipaddress').val();
         let mac = '';
         let name = '';
+        let serialnumber = '';
         if (ip !== '') {
             $.get('http://' + ip + ':8090/info', (data) => {
                 mac = $(data).find('info').attr('deviceID');
                 name = $(data).find('name').text();
+                serialnumber = $(data).find('serialNumber').text();
                 Homey.addDevice({
                     name: name,
                     data: {
-                        mac: mac
+                        serial: serialnumber
                     },
                     settings: {
-                        ip: ip
+                        ip: ip,
+                        mac: mac
                     },
                     store: {
 
                     }
                 }, (err, result) => {
                     if (err) {
-                        console.log(name + '   ' + ip + '  '  + mac);
+                        console.log(name + '   ' + ip + '  '  + mac + '  ' + serialnumber);
                         return Homey.alert(err);
                     }
                     Homey.done();
