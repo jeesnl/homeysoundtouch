@@ -105,6 +105,20 @@
         ]
       },
       {
+        "id": "is_on",
+        "title": {
+          "en": "Is !{{on|off}}",
+          "nl": "Is !{{aan|uit}}"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          }
+        ]
+      },
+      {
         "id": "is_in_zone",
         "title": {
           "en": "!{{Is|Isn't}} in a zone",

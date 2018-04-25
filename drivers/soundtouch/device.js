@@ -23,6 +23,16 @@ class SoundtouchDevice extends Homey.Device {
         this._volumeChangedTrigger = new Homey.FlowCardTriggerDevice('changed_volume')
             .register();
 
+        const _isTurnedOnCondition = new Homey.FlowCardCondition('is_on')
+            .register()
+            .registerRunListener(async (args, state) => {
+                try {
+                    return Promise.resolve(await this._api.isOn());
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
+
         const _isPlayingCondition = new Homey.FlowCardCondition('is_playing')
             .register()
             .registerRunListener((args, state) => {
