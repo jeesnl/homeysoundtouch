@@ -275,10 +275,10 @@
         ]
       },
       {
-        "id": "toggle_power",
+        "id": "power",
         "title": {
-          "en": "Turn on/off",
-          "nl": "Zet aan/uit"
+          "en": "Turn",
+          "nl": "Zet"
         },
         "fluidArgs": true,
         "args": [
@@ -286,6 +286,26 @@
             "name": "device",
             "type": "device",
             "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "power_onoff",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "power_on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
+                }
+              },
+              {
+                "id": "power_off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit"
+                }
+              }
+            ]
           }
         ]
       },

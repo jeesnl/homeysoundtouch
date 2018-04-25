@@ -26,7 +26,7 @@ class SoundtouchDevice extends Homey.Device {
         const _isPlayingCondition = new Homey.FlowCardCondition('is_playing')
             .register()
             .registerRunListener((args, state) => {
-                return Promise.resolve(this.getCapabilityValue('speaker_playing', true));
+                return Promise.resolve(this.getCapabilityValue('speaker_playing'));
             });
 
         const _isInZoneCondition = new Homey.FlowCardCondition('is_in_zone')
@@ -100,11 +100,26 @@ class SoundtouchDevice extends Homey.Device {
                 }
             });
 
-        const _togglePowerAction = new Homey.FlowCardAction('toggle_power')
+        const _togglePowerAction = new Homey.FlowCardAction('power')
             .register()
             .registerRunListener(async (args, state) => {
                 try {
-                    return Promise.resolve(await this._api.power());
+                    const turnedOn = await this._api.isOn();
+                    switch (args.power_onoff) {
+                        case 'power_on': {
+                            if (!turnedOn) {
+                                return Promise.resolve(await this._api.power());
+                            }
+                            break;
+                        }
+                        case 'power_off': {
+                            if (turnedOn) {
+                                return Promise.resolve(await this._api.power());
+                            }
+                            break;
+                        }
+                    }
+                    return Promise.resolve();
                 } catch (e) {
                     return Promise.reject(e);
                 }

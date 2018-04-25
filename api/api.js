@@ -107,6 +107,16 @@ class SoundtouchApi {
     }
 
     //states
+    async isOn() {
+        try {
+            const res = await this._getFromSoundtouch('/now_playing');
+            const body = await res.text();
+            const jsObj = await this._parseXML(body);
+            return (jsObj.nowPlaying.$.source !== 'STANDBY');
+        } catch (e) {
+            return Promise.reject(e);
+        }
+    }
     async isPlaying() {
         try {
             const res = await this._getFromSoundtouch('/now_playing');
