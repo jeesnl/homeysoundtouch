@@ -323,6 +323,83 @@
             ]
           }
         ]
+      },
+      {
+        "id": "shuffle",
+        "title": {
+          "en": "Shuffle",
+          "nl": "Willekeurig"
+        },
+        "fluidArgs": true,
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "shuffle",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "shuffle_on",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan"
+                }
+              },
+              {
+                "id": "shuffle_off",
+                "label": {
+                  "en": "Off",
+                  "nl": "On"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "repeat",
+        "title": {
+          "en": "Repeat",
+          "nl": "Herhaal"
+        },
+        "fluidArgs": true,
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=soundtouch"
+          },
+          {
+            "name": "repeat",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "repeat_none",
+                "label": {
+                  "en": "None",
+                  "nl": "Niets"
+                }
+              },
+              {
+                "id": "repeat_one",
+                "label": {
+                  "en": "One",
+                  "nl": "Een"
+                }
+              },
+              {
+                "id": "repeat_all",
+                "label": {
+                  "en": "All",
+                  "nl": "Alles"
+                }
+              }
+            ]
+          }
+        ]
       }
     ]
     },

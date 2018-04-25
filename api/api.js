@@ -6,6 +6,39 @@ class SoundtouchApi {
     constructor(ip) {
         this._ip = ip;
     }
+    //api settings
+    setIp(ip) {
+        this._ip = ip;
+    }
+
+    //config
+    async getInfo() {
+        const res = await this._getFromSoundtouch('/info');
+        const txt = await res.text();
+        const jsObj = await this._parseXML(txt);
+        return {
+            name: jsObj.info.name[0],
+            type: jsObj.info.type[0],
+            ip: jsObj.info.networkInfo[0].ipAddress[0],
+            mac: jsObj.info.networkInfo[0].macAddress[0]
+        };
+    }
+    async getBassCapabilities() {
+        const res = await this._getFromSoundtouch('/bassCapabilities');
+        const txt = await res.text();
+        const jsObj = await this._parseXML(txt);
+        if (jsObj.bassCapabilities.bassAvailable[0] === 'true') {
+            return {
+                bassAvailable: true,
+                bassMin: parseInt(jsObj.bassCapabilities.bassMin[0]),
+                bassMax: parseInt(jsObj.bassCapabilities.bassMax[0])
+            }
+        } else {
+            return {
+                bassAvailable: false
+            };
+        }
+    }
 
     //keys
     async play() {
@@ -60,6 +93,19 @@ class SoundtouchApi {
         return await this._pressKey(Keys.PRESET_6);
     };
 
+    //options
+    async setVolume(percentage) {
+        await this._postToSoundtouch('/volume', `<volume>${percentage}</volume>`);
+    }
+    async setBassPercentage(percentage) {
+        const bassOptions = await this.getBassCapabilities();
+        if (bassOptions.bassAvailable) {
+            const bassSteps = Math.abs(100 / (bassOptions.bassMin - bassOptions.bassMax));
+            const bassLevel = bassOptions.bassMin + Math.round(percentage / bassSteps);
+            await this._postToSoundtouch('/bass', `<bass>${bassLevel}</bass>`);
+        }
+    }
+
     //states
     async isPlaying() {
         try {
@@ -71,7 +117,6 @@ class SoundtouchApi {
             return Promise.reject(e);
         }
     }
-
     async getVolume() {
         const res = await this._getFromSoundtouch('/volume');
         const body = await res.text();

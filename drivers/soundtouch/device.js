@@ -121,10 +121,32 @@ class SoundtouchDevice extends Homey.Device {
                 }
             });
 
+        const _setShuffleAction = new Homey.FlowCardAction('shuffle')
+            .register()
+            .registerRunListener(async (args, state) => {
+                try {
+                    switch (args.shuffle) {
+                        case 'shuffle_on': return Promise.resolve(await this._api.shuffle_on());
+                        case 'shuffle_off': return Promise.resolve(await this._api.shuffle_off());
+                    }
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
 
-        if (this.bass === undefined) {
-            this._getBassCapabilitiesAndSave();
-        }
+        const _setRepeatAction = new Homey.FlowCardAction('repeat')
+            .register()
+            .registerRunListener(async (args, state) => {
+                try {
+                    switch (args.repeat) {
+                        case 'repeat_none': return Promise.resolve(await this._api.repeat_none());
+                        case 'repeat_one': return Promise.resolve(await this._api.repeat_one());
+                        case 'repeat_all': return Promise.resolve(await this._api.repeat_all());
+                    }
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            });
 
         //poll playing state of speaker
         setInterval(() => {
@@ -144,6 +166,11 @@ class SoundtouchDevice extends Homey.Device {
     // this method is called when the Device is deleted
     onDeleted() {
         this.log('device deleted');
+    }
+
+    // this method is called when a user changes settings
+    onSettings(oldSettings, newSettings, changedKeys) {
+        this._api.setIp(newSettings(ip));
     }
 
     _registerCapabilities() {
@@ -218,24 +245,19 @@ class SoundtouchDevice extends Homey.Device {
         }
     }
 
-    async _sendVolumeCommand(volume) {
-        this.log('volume', volume);
+    async _sendVolumeCommand(percentage) {
+        this.log('volume', percentage);
         try {
-            return await this._postToSoundtouch('/volume', '<volume>' + volume * 100 + '</volume>');
+            return await this._api.setVolume(percentage * 100);
         } catch (e) {
             return e;
         }
     }
 
-    async _sendBassCommand(bass) {
-        if (!this.bass.available) {
-            return Promise.reject('Bass not available');
-        }
-        const bassSteps = Math.abs(100 / (this.bass.min - this.bass.max));
-        const bassLevel = this.bass.min + Math.round((bass * 100) / bassSteps);
-        this.log('bass', bassLevel);
+    async _sendBassCommand(bassPercentage) {
+        this.log('bass', bassPercentage);
         try {
-            return await this._postToSoundtouch('/bass', '<bass>' + bassLevel + '</bass>');
+            return await this._api.setBassPercentage(bassPercentage * 100);
         } catch (e) {
             return e;
         }
@@ -304,42 +326,6 @@ class SoundtouchDevice extends Homey.Device {
             return await this._postToSoundtouch('/select', body);
         } catch (e) {
             return e;
-        }
-    }
-
-    async _getBassCapabilitiesAndSave() {
-        this.bass = {};
-        try {
-            const res = await this._getFromSoundtouch('/bassCapabilities');
-            const txt = await res.text();
-            const jsObj = await this._parseXML(txt);
-            if (jsObj.bassCapabilities.bassAvailable[0] === 'true') {
-                this.bass.available = true;
-                this.bass.min = parseInt(jsObj.bassCapabilities.bassMin[0]);
-                this.bass.max = parseInt(jsObj.bassCapabilities.bassMax[0]);
-            } else {
-                this.bass.available = false;
-            }
-            this.log('Bass capabilities ', this.bass);
-            return Promise.resolve();
-        } catch (e) {
-            return e;
-        }
-    }
-
-    async _postToSoundtouch(uri, body) {
-            try {
-                return await Fetch('http://' + this.getSettings()._ip + ':8090' + uri, {method: 'POST', body: body});
-            } catch (e) {
-                return(e);
-            }
-    }
-
-    async _getFromSoundtouch(uri) {
-        try {
-            return await Fetch('http://' + this.getSettings()._ip + ':8090' + uri, {method: 'GET'});
-        } catch (e) {
-            return (e);
         }
     }
 
