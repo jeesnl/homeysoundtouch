@@ -10,5 +10,8 @@
       "saveDevice": "Save",
       "required": "Ip address is required"
     }
+  },
+  "settings": {
+    "empty": "Ip or Mac address can't be empty"
   }
 }

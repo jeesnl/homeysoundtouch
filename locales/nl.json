@@ -10,5 +10,8 @@
       "saveDevice": "Opslaan",
       "required": "Ip adres is vereist"
     }
+  },
+  "settings": {
+    "empty": "Ip of Mac adres mag niet leeg zijn"
   }
 }

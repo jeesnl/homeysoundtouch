@@ -217,8 +217,12 @@ class SoundtouchDevice extends Homey.Device {
 
     // this method is called when a user changes settings
     onSettings(oldSettings, newSettings, changedKeys) {
-        this._api.setIp(newSettings(ip));
-        this._api.setMac(newSettings(mac));
+        if (newSettings.ip === '' || newSettings.mac === '') {
+            return Promise.reject(Homey.__('settings.empty'));
+        }
+        this._api.setIp(newSettings.ip);
+        this._api.setMac(newSettings.mac);
+        return Promise.resolve(true);
     }
 
     _registerCapabilities() {
